@@ -15,7 +15,9 @@ import EvaluationPage from './pages/evaluations/EvaluationPage';
 import ReportsPage from './pages/reports/ReportsPage';
 import UserList from './pages/users/UserList';
 import Calendrier from './pages/Calendrier';
+import Cartes from './pages/Cartes';
 import Parametres from './pages/Parametres';
+import ProfilePage from './pages/ProfilePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 
@@ -37,7 +39,9 @@ function App() {
       <Route path="/rapports" element={<ReportsPage />} />
       <Route path="/utilisateurs" element={<UserList />} />
       <Route path="/calendrier" element={<Calendrier />} />
+      <Route path="/cartes" element={<Cartes />} />
       <Route path="/parametres" element={<Parametres />} />
+      <Route path="/profil" element={<ProfilePage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="*" element={<Dashboard />} />

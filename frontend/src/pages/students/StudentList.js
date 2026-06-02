@@ -54,6 +54,40 @@ const StudentList = () => {
     }
   };
 
+  const genererCarte = async (id, nom) => {
+    try {
+      const r = await api.post('/cards', { type: 'eleve', ids: [id] }, { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([r.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `carte-${nom}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      addToast('Erreur lors de la génération de la carte', 'error');
+    }
+  };
+
+  const handleExport = async () => {
+    try {
+      const params = {};
+      if (filtreNiveau) params.niveau = filtreNiveau;
+      const r = await api.get('/students/export/pdf', { params, responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([r.data], { type: 'application/pdf' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'eleves.pdf');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      addToast('Erreur lors de l\'export PDF', 'error');
+    }
+  };
+
   const getMatricule = (s) => s.matricule || `ETU-${String(s._id).padStart(4, '0')}`;
 
   const stats = useMemo(() => ({
@@ -73,10 +107,7 @@ const StudentList = () => {
           <Link to="/eleves/ajouter" className="btn btn-primary">
             <i className="fa-solid fa-plus"></i> Ajouter un élève
           </Link>
-          <button className="btn btn-success">
-            <i className="fa-solid fa-file-import"></i> Importer
-          </button>
-          <button className="btn btn-info" style={{ background: 'linear-gradient(135deg, #d97706, #f59e0b)' }}>
+          <button className="btn btn-success" onClick={handleExport}>
             <i className="fa-solid fa-file-export"></i> Exporter
           </button>
         </div>
@@ -194,6 +225,7 @@ const StudentList = () => {
                       <div style={{ display: 'flex', gap: 4 }}>
                         <Link to={`/eleves/${s._id}`} className="btn btn-sm" style={{ background: '#eef2ff', color: '#4f46e5', padding: '5px 9px' }} title="Voir"><i className="fa-solid fa-eye"></i></Link>
                         <Link to={`/eleves/modifier/${s._id}`} className="btn btn-sm" style={{ background: '#fffbeb', color: '#d97706', padding: '5px 9px' }} title="Modifier"><i className="fa-solid fa-pen"></i></Link>
+                        <button className="btn btn-sm" style={{ background: '#f0fdf4', color: '#16a34a', padding: '5px 9px' }} onClick={() => genererCarte(s._id, `${s.nom}_${s.prenom}`)} title="Carte"><i className="fa-solid fa-id-card"></i></button>
                         <button className="btn btn-sm" style={{ background: '#fef2f2', color: '#dc2626', padding: '5px 9px' }} onClick={() => handleDelete(s._id)} title="Supprimer"><i className="fa-solid fa-trash"></i></button>
                       </div>
                     </td>

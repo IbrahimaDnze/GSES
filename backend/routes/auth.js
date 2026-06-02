@@ -39,4 +39,42 @@ router.get('/me', protect, async (req, res) => {
   res.json(req.user);
 });
 
+router.put('/profile', protect, async (req, res) => {
+  try {
+    const { nom, email, telephone, motDePasse, photo } = req.body;
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: 'Utilisateur non trouve' });
+    if (email && email !== user.email) {
+      const existing = await User.findOne({ email });
+      if (existing) return res.status(400).json({ message: 'Email deja utilise' });
+    }
+    if (nom !== undefined) user.nom = nom;
+    if (email !== undefined) user.email = email;
+    if (telephone !== undefined) user.telephone = telephone;
+    if (motDePasse) user.motDePasse = motDePasse;
+
+    if (photo && photo.startsWith('data:')) {
+      const matches = photo.match(/^data:image\/(\w+);base64,([\s\S]+)$/);
+      if (matches) {
+        const ext = matches[1] === 'png' ? 'png' : 'jpg';
+        const filename = `admin-${Date.now()}.${ext}`;
+        const fs = require('fs');
+        const path = require('path');
+        const uploadsDir = path.join(__dirname, '..', 'uploads');
+        if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+        fs.writeFileSync(path.join(uploadsDir, filename), matches[2], 'base64');
+        user.photo = filename;
+      }
+    }
+
+    await user.save();
+    res.json({
+      id: user._id, nom: user.nom, email: user.email,
+      role: user.role, telephone: user.telephone, photo: user.photo
+    });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
 module.exports = router;

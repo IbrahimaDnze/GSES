@@ -1,5 +1,6 @@
 const express = require('express');
 const Payment = require('../models/Payment');
+const Setting = require('../models/Setting');
 const { protect, autoriserRoles } = require('../middleware/auth');
 const router = express.Router();
 
@@ -66,12 +67,14 @@ router.get('/:id/recu', protect, async (req, res) => {
     const fs = require('fs');
     const path = require('path');
 
+    const settings = await Setting.findOne() || {};
+
     const doc = new PDFDocument({ size: 'A4', margin: 50, layout: 'portrait' });
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename=recu-${payment._id}.pdf`);
     doc.pipe(res);
 
-    const bgColor = '#0d7a5e';
+    const bgColor = '#1E3B2E';
     const lightBg = '#f0faf5';
     const borderColor = '#d4d4d4';
     const textColor = '#1f2937';
@@ -81,14 +84,19 @@ router.get('/:id/recu', protect, async (req, res) => {
     const rightX = doc.page.width - 50;
 
     doc.rect(0, 0, doc.page.width, 120).fill(bgColor);
-    doc.fillColor('#ffffff').fontSize(22).font('Helvetica-Bold').text('ÉCOLE CORANIQUE AL NOUR', leftX, 30, { align: 'center' });
-    doc.fontSize(11).font('Helvetica').text('"Apprendre le Coran, c\'est construire l\'avenir"', { align: 'center' });
-    doc.fontSize(10).text('Tél : 77 123 45 67  |  Email : contact@ecole-alnour.sn  |  Dakar, Sénégal', { align: 'center' });
 
-    const logoPath = path.join(__dirname, '..', 'uploads', 'logo.png');
-    if (fs.existsSync(logoPath)) {
-      doc.image(logoPath, rightX - 70, 15, { width: 55 });
+    if (settings.logo) {
+      const logoPath = path.join(__dirname, '..', 'uploads', settings.logo);
+      if (fs.existsSync(logoPath)) {
+        doc.image(logoPath, leftX + 15, 15, { width: 55 });
+      }
     }
+
+    const schoolName = settings.nomEcole || 'ÉCOLE CORANIQUE';
+    doc.fillColor('#ffffff').fontSize(22).font('Helvetica-Bold').text(schoolName, leftX, 30, { align: 'center' });
+    doc.fontSize(11).font('Helvetica').text('"Apprendre le Coran, c\'est construire l\'avenir"', { align: 'center' });
+    const contactLine = `${settings.email ? `Email : ${settings.email}` : ''}${settings.email && settings.telephone ? '  |  ' : ''}${settings.telephone ? `Tél : ${settings.telephone}` : ''}`;
+    if (contactLine) doc.fontSize(10).text(contactLine, { align: 'center' });
 
     doc.fillColor('#ffffff').fontSize(16).font('Helvetica-Bold');
     doc.text('REÇU DE PAIEMENT', leftX, 135, { align: 'center' });
@@ -150,20 +158,19 @@ router.get('/:id/recu', protect, async (req, res) => {
       doc.fontSize(9).font('Helvetica').fillColor(mutedColor).text(`Mode de paiement : ${modeLabel[payment.modePaiement] || payment.modePaiement}${payment.reference ? `  |  Réf : ${payment.reference}` : ''}`);
     }
 
-    if (payment.notes) {
-      doc.moveDown(0.5);
-      doc.fontSize(9).font('Helvetica-Oblique').fillColor(mutedColor).text(`Notes : ${payment.notes}`);
+    if (settings.signature) {
+      const sigPath = path.join(__dirname, '..', 'uploads', settings.signature);
+      if (fs.existsSync(sigPath)) {
+        doc.moveDown(3);
+        const signY = doc.y;
+        doc.rect(leftX, signY, pageWidth, 1).fill(borderColor);
+        doc.image(sigPath, rightX - 100, signY + 8, { width: 80 });
+        doc.moveDown(2);
+      }
     }
 
-    doc.moveDown(3);
-    const signY = doc.y;
-    doc.rect(leftX, signY, pageWidth, 1).fill(borderColor);
-    doc.moveDown(0.5);
-    doc.fontSize(9).font('Helvetica').fillColor(mutedColor).text('Cachet et signature', { align: 'right' });
-    doc.moveDown(1.5);
-
     doc.fontSize(8).fillColor('#9ca3af').font('Helvetica-Oblique').text(
-      'Ce reçu est généré automatiquement par le système de gestion École Coranique Al Nour.',
+      'Ce reçu est généré automatiquement par le système de gestion.',
       leftX, doc.page.height - 60, { align: 'center', width: pageWidth }
     );
 

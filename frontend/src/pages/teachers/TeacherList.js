@@ -56,6 +56,38 @@ const TeacherList = () => {
     }
   };
 
+  const genererCarte = async (id, nom) => {
+    try {
+      const r = await api.post('/cards', { type: 'enseignant', ids: [id] }, { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([r.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `carte-${nom}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      addToast('Erreur lors de la génération de la carte', 'error');
+    }
+  };
+
+  const handleExport = async () => {
+    try {
+      const r = await api.get('/teachers/export/pdf', { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([r.data], { type: 'application/pdf' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'enseignants.pdf');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      addToast('Erreur lors de l\'export PDF', 'error');
+    }
+  };
+
   const getTeacherId = (t) => t.identifiant || `ENS-${String(t._id).replace('t', '').padStart(3, '0')}`;
 
   const stats = useMemo(() => ({
@@ -82,11 +114,8 @@ const TeacherList = () => {
           <Link to="/enseignants/ajouter" className="btn btn-primary">
             <i className="fa-solid fa-plus"></i> Ajouter enseignant
           </Link>
-          <button className="btn btn-success">
+          <button className="btn btn-success" onClick={handleExport}>
             <i className="fa-solid fa-file-export"></i> Exporter
-          </button>
-          <button className="btn btn-info" style={{ background: 'linear-gradient(135deg, #4f46e5, #6366f1)' }}>
-            <i className="fa-solid fa-print"></i> Imprimer
           </button>
         </div>
       </div>
@@ -209,6 +238,7 @@ const TeacherList = () => {
                       <div style={{ display: 'flex', gap: 4 }}>
                         <button className="btn btn-sm" style={{ background: '#eef2ff', color: '#4f46e5', padding: '5px 9px' }} title="Voir profil"><i className="fa-solid fa-user"></i></button>
                         <Link to={`/enseignants/modifier/${t._id}`} className="btn btn-sm" style={{ background: '#fffbeb', color: '#d97706', padding: '5px 9px' }} title="Modifier"><i className="fa-solid fa-pen"></i></Link>
+                        <button className="btn btn-sm" style={{ background: '#f0fdf4', color: '#16a34a', padding: '5px 9px' }} onClick={() => genererCarte(t._id, `${t.nom}_${t.prenom}`)} title="Carte"><i className="fa-solid fa-id-card"></i></button>
                         <button className="btn btn-sm" style={{ background: '#fef2f2', color: '#dc2626', padding: '5px 9px' }} onClick={() => handleDelete(t._id)} title="Supprimer"><i className="fa-solid fa-trash"></i></button>
                       </div>
                     </td>

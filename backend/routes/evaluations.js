@@ -10,7 +10,7 @@ router.get('/', protect, async (req, res) => {
     if (eleve) filter.eleve = eleve;
     if (niveau) filter.niveau = niveau;
     const evaluations = await Evaluation.find(filter)
-      .populate('eleve', 'nom prenom')
+      .populate('eleve', 'nom prenom photo')
       .sort('-dateEvaluation');
     res.json(evaluations);
   } catch (error) {

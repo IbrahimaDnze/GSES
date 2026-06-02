@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout/Layout';
 import api from '../api/axios';
+import { Toaster, toast } from 'react-hot-toast';
 
 const mois = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
 const joursSemaine = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
@@ -12,6 +13,9 @@ const Calendrier = () => {
   const [showModal, setShowModal] = useState(false);
   const [modalEvent, setModalEvent] = useState(null);
   const [events, setEvents] = useState([]);
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({ titre: '', date: '', type: 'programme', description: '' });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     api.get('/events', { params: { mois: moisCourant + 1, annee: anneeCourante } })
@@ -39,17 +43,36 @@ const Calendrier = () => {
   };
 
   const getTypeColor = (type) => {
-    const colors = { examen: '#ef4444', reunion: '#3b82f6', evenement: '#10b981' };
+    const colors = { examen: '#ef4444', reunion: '#3b82f6', evenement: '#10b981', programme: '#8b5cf6' };
     return colors[type] || '#6366f1';
   };
 
   const getTypeLabel = (type) => {
-    const labels = { examen: 'Examen', reunion: 'Réunion', evenement: 'Événement' };
+    const labels = { examen: 'Examen', reunion: 'Réunion', evenement: 'Événement', programme: 'Programme' };
     return labels[type] || type;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!form.titre || !form.date) return toast.error('Titre et date requis');
+    setLoading(true);
+    try {
+      await api.post('/events', form);
+      toast.success('Programme ajouté');
+      setShowForm(false);
+      setForm({ titre: '', date: '', type: 'programme', description: '' });
+      const r = await api.get('/events', { params: { mois: moisCourant + 1, annee: anneeCourante } });
+      setEvents(r.data);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Erreur');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <Layout>
+      <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
       <div className="breadcrumb">
         <span className="breadcrumb-current">Calendrier</span>
       </div>
@@ -64,9 +87,14 @@ const Calendrier = () => {
             <i className="fa-solid fa-chevron-left"></i> {mois[(moisCourant - 1 + 12) % 12]}
           </button>
           <h3 style={{ margin: 0, color: '#0f172a' }}>{mois[moisCourant]} {anneeCourante}</h3>
-          <button className="btn btn-cancel" onClick={() => naviguer(1)} style={{ padding: '8px 16px' }}>
-            {mois[(moisCourant + 1) % 12]} <i className="fa-solid fa-chevron-right"></i>
-          </button>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button className="btn btn-primary" onClick={() => setShowForm(true)}>
+              <i className="fa-solid fa-plus"></i> Programme
+            </button>
+            <button className="btn btn-cancel" onClick={() => naviguer(1)} style={{ padding: '8px 16px' }}>
+              {mois[(moisCourant + 1) % 12]} <i className="fa-solid fa-chevron-right"></i>
+            </button>
+          </div>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2, background: '#e2e8f0', borderRadius: 12, overflow: 'hidden' }}>
@@ -102,7 +130,7 @@ const Calendrier = () => {
       </div>
 
       <div style={{ display: 'flex', gap: 20, marginTop: 16 }}>
-        {['examen', 'reunion', 'evenement'].map(k => (
+        {['examen', 'reunion', 'evenement', 'programme'].map(k => (
           <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#64748b' }}>
             <span style={{ width: 12, height: 12, borderRadius: 3, background: getTypeColor(k) }}></span> {getTypeLabel(k)}
           </div>
@@ -126,9 +154,52 @@ const Calendrier = () => {
               {new Date(modalEvent.date).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
             </div>
             <div style={{ display: 'inline-block', padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600, background: getTypeColor(modalEvent.type) + '20', color: getTypeColor(modalEvent.type), textTransform: 'capitalize' }}>
-              {modalEvent.type}
+              {getTypeLabel(modalEvent.type)}
             </div>
             <p style={{ marginTop: 16, color: '#475569', fontSize: 14 }}>{modalEvent.description || 'Aucun détail supplémentaire pour cet événement.'}</p>
+          </div>
+        </div>
+      )}
+
+      {showForm && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.4)',
+          display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000
+        }} onClick={() => setShowForm(false)}>
+          <div style={{ background: '#fff', borderRadius: 16, padding: 30, minWidth: 420 }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <h3 style={{ margin: 0, color: '#0f172a' }}><i className="fa-solid fa-plus-circle" style={{ color: '#0d7a5e', marginRight: 8 }}></i>Nouveau programme</h3>
+              <button onClick={() => setShowForm(false)} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: '#94a3b8' }}>
+                <i className="fa-solid fa-times"></i>
+              </button>
+            </div>
+            <form onSubmit={handleSubmit}>
+              <div className="form-group">
+                <label>Titre</label>
+                <input type="text" className="form-control" value={form.titre} onChange={e => setForm({ ...form, titre: e.target.value })} placeholder="Titre du programme" required />
+              </div>
+              <div className="form-group">
+                <label>Date</label>
+                <input type="date" className="form-control" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} required />
+              </div>
+              <div className="form-group">
+                <label>Type</label>
+                <select className="form-control" value={form.type} onChange={e => setForm({ ...form, type: e.target.value })}>
+                  <option value="programme">Programme</option>
+                  <option value="examen">Examen</option>
+                  <option value="reunion">Réunion</option>
+                  <option value="evenement">Événement</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Description</label>
+                <textarea className="form-control" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} rows={3} placeholder="Description (optionnelle)" />
+              </div>
+              <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 20 }}>
+                <button type="button" className="btn btn-cancel" onClick={() => setShowForm(false)}>Annuler</button>
+                <button type="submit" className="btn btn-primary" disabled={loading}>{loading ? 'Enregistrement...' : 'Enregistrer'}</button>
+              </div>
+            </form>
           </div>
         </div>
       )}

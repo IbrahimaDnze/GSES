@@ -11,6 +11,7 @@ const userSchema = new mongoose.Schema({
     default: 'enseignant'
   },
   telephone: { type: String },
+  photo: { type: String },
   actif: { type: Boolean, default: true }
 }, { timestamps: true });
 

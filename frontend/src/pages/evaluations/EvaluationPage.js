@@ -125,9 +125,6 @@ const EvaluationPage = () => {
           <button className="btn btn-primary" onClick={openAdd}>
             <i className="fa-solid fa-plus"></i> Nouvelle évaluation
           </button>
-          <button className="btn btn-success">
-            <i className="fa-solid fa-file-export"></i> Exporter
-          </button>
         </div>
       </div>
 

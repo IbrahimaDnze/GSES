@@ -264,8 +264,12 @@ const Dashboard = () => {
           </div>
           {recentEvals.length > 0 ? recentEvals.map(e => (
             <div className="eval-item" key={e._id}>
-              <div className="eval-icon" style={{ background: e.avg >= 80 ? '#ecfdf5' : e.avg >= 70 ? '#fffbeb' : '#fef2f2', color: e.avg >= 80 ? '#0d7a5e' : e.avg >= 70 ? '#b8860b' : '#b91c1c' }}>
-                <i className="fa-solid fa-star"></i>
+              <div className="eval-icon" style={{ overflow: 'hidden', padding: 0 }}>
+                {e.eleve?.photo ? (
+                  <img src={`http://localhost:5001/uploads/${e.eleve.photo}`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <i className="fa-solid fa-star" style={{ color: '#0d7a5e' }}></i>
+                )}
               </div>
               <div className="eval-content">
                 <div className="eval-name">{e.eleve?.prenom} {e.eleve?.nom}</div>

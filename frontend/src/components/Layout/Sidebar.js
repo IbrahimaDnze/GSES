@@ -1,14 +1,17 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useSettings } from '../../context/SettingsContext';
+import { useAuth } from '../../context/AuthContext';
+import Avatar from '../Common/Avatar';
 
 const Sidebar = () => {
   const { settings } = useSettings();
+  const { user } = useAuth();
   return (
     <div className="sidebar">
       <div className="sidebar-logo">
         <div className="sidebar-logo-icon">
-          {settings?.logo ? <img src={`http://localhost:5001/uploads/${settings.logo}`} alt="Logo" style={{ width: 38, height: 38, borderRadius: 8, objectFit: 'cover' }} /> : <i className="fa-solid fa-quran"></i>}
+          {settings?.logo ? <img src={`http://localhost:5001/uploads/${settings.logo}`} alt="Logo" style={{ width: 60, height: 60, borderRadius: 10, objectFit: 'cover' }} /> : <i className="fa-solid fa-quran"></i>}
         </div>
         <div>
           <h2>{settings?.nomEcole || 'École Coranique'}</h2>
@@ -62,21 +65,27 @@ const Sidebar = () => {
             </NavLink>
           </li>
           <li>
-            <NavLink to="/rapports" className={({ isActive }) => isActive ? 'active' : ''}>
-              <i className="fa-solid fa-chart-bar"></i>
-              <span>Rapports</span>
-            </NavLink>
-          </li>
-          <li>
             <NavLink to="/calendrier" className={({ isActive }) => isActive ? 'active' : ''}>
               <i className="fa-solid fa-calendar-days"></i>
               <span>Calendrier</span>
+            </NavLink>
+          </li>
+          <li>
+            <NavLink to="/cartes" className={({ isActive }) => isActive ? 'active' : ''}>
+              <i className="fa-solid fa-id-card"></i>
+              <span>Cartes</span>
             </NavLink>
           </li>
         </ul>
 
         <div className="sidebar-section-title">PARAMÈTRES</div>
         <ul className="sidebar-nav">
+          <li>
+            <NavLink to="/profil" className={({ isActive }) => isActive ? 'active' : ''}>
+              <i className="fa-solid fa-user-circle"></i>
+              <span>Profil</span>
+            </NavLink>
+          </li>
           <li>
             <NavLink to="/utilisateurs" className={({ isActive }) => isActive ? 'active' : ''}>
               <i className="fa-solid fa-users"></i>
@@ -93,13 +102,19 @@ const Sidebar = () => {
       </div>
 
       <div className="sidebar-footer">
-        <div className="sidebar-user">
-          <div className="sidebar-avatar">A</div>
-          <div>
-            <p className="sidebar-user-name">Administrateur</p>
-            <p className="sidebar-user-role">Super Admin</p>
+        <NavLink to="/profil" style={{ textDecoration: 'none', color: 'inherit' }}>
+          <div className="sidebar-user">
+            <Avatar nom={user?.nom} prenom="" photo={user?.photo} size={36} />
+            <div>
+              <p className="sidebar-user-name">{user?.nom || 'Utilisateur'}</p>
+              <p className="sidebar-user-role">
+                {user?.role === 'admin' ? 'Administrateur' :
+                 user?.role === 'directeur' ? 'Directeur' :
+                 user?.role === 'enseignant' ? 'Enseignant' : 'Comptable'}
+              </p>
+            </div>
           </div>
-        </div>
+        </NavLink>
       </div>
     </div>
   );

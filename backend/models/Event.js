@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const eventSchema = new mongoose.Schema({
   titre: { type: String, required: true },
   date: { type: Date, required: true },
-  type: { type: String, enum: ['examen', 'reunion', 'evenement'], default: 'evenement' },
+  type: { type: String, enum: ['examen', 'reunion', 'evenement', 'programme'], default: 'programme' },
   description: { type: String },
 }, { timestamps: true });
 

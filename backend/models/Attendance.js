@@ -14,7 +14,4 @@ const attendanceSchema = new mongoose.Schema({
   enregistrePar: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 }, { timestamps: true });
 
-attendanceSchema.index({ date: 1, eleve: 1 }, { unique: true, sparse: true });
-attendanceSchema.index({ date: 1, enseignant: 1 }, { unique: true, sparse: true });
-
 module.exports = mongoose.model('Attendance', attendanceSchema);

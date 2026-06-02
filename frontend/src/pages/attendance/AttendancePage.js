@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Layout from '../../components/Layout/Layout';
 import Loading from '../../components/Common/Loading';
 import Avatar from '../../components/Common/Avatar';
+import { useToast } from '../../components/Common/Toast';
 import api from '../../api/axios';
 
 const STATUTS = ['present', 'absent', 'retard', 'justifie'];
@@ -10,6 +11,7 @@ const STATUT_COLORS = { present: '#059669', absent: '#dc2626', retard: '#d97706'
 const STATUT_ICONS = { present: 'fa-check-circle', absent: 'fa-times-circle', retard: 'fa-clock', justifie: 'fa-check-double' };
 
 const AttendancePage = () => {
+  const { addToast } = useToast();
   const [students, setStudents] = useState([]);
   const [teachers, setTeachers] = useState([]);
   const [classes, setClasses] = useState([]);
@@ -79,7 +81,17 @@ const AttendancePage = () => {
       if (type === 'eleve') payload.eleveId = id;
       else payload.enseignantId = id;
       await api.post('/attendance', payload);
-    } catch (err) { console.error(err); }
+      const res = await api.get(`/attendance?date=${date}&type=${type}`);
+      const map = {};
+      res.data.forEach(a => {
+        const key = type === 'eleve' ? a.eleve?._id : a.enseignant?._id;
+        if (key) map[key] = a.statut;
+      });
+      setAttendance(map);
+    } catch (err) {
+      addToast(err.response?.data?.message || 'Erreur lors de la sauvegarde', 'error');
+      setAttendance(prev => ({ ...prev, [id]: currentStatus }));
+    }
     setSaving(false);
   };
 
@@ -129,9 +141,6 @@ const AttendancePage = () => {
             </div>
           )}
           {saving && <span style={{ color: '#059669', fontSize: 13 }}><i className="fa-solid fa-spinner fa-spin"></i> Sauvegarde...</span>}
-          <button className="btn btn-info" style={{ background: 'linear-gradient(135deg, #059669, #047857)', fontSize: 12.5, padding: '7px 16px' }}>
-            <i className="fa-solid fa-file-export"></i> Rapport
-          </button>
         </div>
       </div>
 

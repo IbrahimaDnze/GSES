@@ -8,7 +8,7 @@ const router = express.Router();
 const uploadsDir = path.join(__dirname, '..', 'uploads');
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 
-router.get('/', protect, async (req, res) => {
+router.get('/', async (req, res) => {
   try {
     let settings = await Setting.findOne();
     if (!settings) {
