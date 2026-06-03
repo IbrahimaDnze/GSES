@@ -7,6 +7,7 @@ import api from '../../api/axios';
 const UserList = () => {
   const { addToast } = useToast();
   const [users, setUsers] = useState([]);
+  const [teachers, setTeachers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ nom: '', email: '', motDePasse: '', role: 'enseignant', telephone: '' });
@@ -17,7 +18,23 @@ const UserList = () => {
     api.get('/users').then(res => setUsers(res.data)).catch(err => console.error(err)).finally(() => setLoading(false));
   };
 
-  useEffect(() => { fetchUsers(); }, []);
+  const fetchTeachers = () => {
+    api.get('/teachers').then(res => setTeachers(res.data)).catch(() => {});
+  };
+
+  useEffect(() => { fetchUsers(); fetchTeachers(); }, []);
+
+  const handleRoleChange = (role) => {
+    setForm(prev => ({ ...prev, role, nom: '', email: '' }));
+    if (role === 'enseignant') fetchTeachers();
+  };
+
+  const handleTeacherSelect = (e) => {
+    const id = e.target.value;
+    if (!id) { setForm(prev => ({ ...prev, nom: '', email: '' })); return; }
+    const t = teachers.find(tc => tc._id === id);
+    if (t) setForm(prev => ({ ...prev, nom: t.nom, email: t.email || '' }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -57,18 +74,32 @@ const UserList = () => {
           {error && <div className="toast-error">{error}</div>}
           <form onSubmit={handleSubmit}>
             <div className="form-row">
-              <div className="form-group"><label>Nom</label><input value={form.nom} onChange={e => setForm({...form, nom: e.target.value})} required /></div>
-              <div className="form-group"><label>Email</label><input type="email" value={form.email} onChange={e => setForm({...form, email: e.target.value})} required /></div>
-            </div>
-            <div className="form-row">
-              <div className="form-group"><label>Mot de passe</label><input type="password" value={form.motDePasse} onChange={e => setForm({...form, motDePasse: e.target.value})} required /></div>
               <div className="form-group"><label>Role</label>
-                <select value={form.role} onChange={e => setForm({...form, role: e.target.value})}>
+                <select value={form.role} onChange={e => handleRoleChange(e.target.value)}>
                   <option value="enseignant">Enseignant</option><option value="directeur">Directeur</option>
                   <option value="admin">Administrateur</option><option value="comptable">Comptable</option>
                 </select>
               </div>
+              <div className="form-group">
+                <label>Mot de passe</label>
+                <input type="password" value={form.motDePasse} onChange={e => setForm({...form, motDePasse: e.target.value})} required />
+              </div>
             </div>
+            {form.role === 'enseignant' ? (
+              <div className="form-group">
+                <label>Enseignant</label>
+                <select value={form.nom ? teachers.find(t => t.nom === form.nom)?._id || '' : ''} onChange={handleTeacherSelect} required>
+                  <option value="">-- Sélectionnez un enseignant --</option>
+                  {teachers.map(t => (
+                    <option key={t._id} value={t._id}>{t.nom} {t.prenom} {t.email ? `(${t.email})` : ''}</option>
+                  ))}
+                </select>
+                {teachers.length === 0 && <small style={{ color: '#b91c1c' }}>Aucun enseignant trouvé. Créez d'abord un enseignant.</small>}
+              </div>
+            ) : (
+              <div className="form-group"><label>Nom</label><input value={form.nom} onChange={e => setForm({...form, nom: e.target.value})} required /></div>
+            )}
+            <div className="form-group"><label>Email</label><input type="email" value={form.email} onChange={e => setForm({...form, email: e.target.value})} required /></div>
             <div className="form-group"><label>Telephone</label><input value={form.telephone} onChange={e => setForm({...form, telephone: e.target.value})} /></div>
             <div className="form-actions">
               <button type="submit" className="btn btn-primary"><i className="fa-solid fa-save"></i> Creer</button>

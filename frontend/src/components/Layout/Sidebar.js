@@ -1,12 +1,41 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useSettings } from '../../context/SettingsContext';
 import { useAuth } from '../../context/AuthContext';
 import Avatar from '../Common/Avatar';
 
+const menuItems = {
+  principal: [
+    { to: '/', label: 'Tableau de bord', icon: 'fa-gauge-high', roles: ['admin', 'directeur', 'comptable'] },
+    { to: '/eleves', label: 'Élèves', icon: 'fa-graduation-cap', roles: ['admin', 'directeur', 'enseignant'] },
+    { to: '/enseignants', label: 'Enseignants', icon: 'fa-chalkboard-user', roles: ['admin', 'directeur'] },
+    { to: '/classes', label: 'Classes', icon: 'fa-school', roles: ['admin', 'directeur'] },
+    { to: '/presences', label: 'Présences', icon: 'fa-check', roles: ['admin', 'directeur', 'enseignant'] },
+    { to: '/paiements', label: 'Paiements', icon: 'fa-money-bill-transfer', roles: ['admin', 'directeur', 'comptable'] },
+    { to: '/evaluations', label: 'Évaluations', icon: 'fa-book-quran', roles: ['admin', 'directeur', 'enseignant'] },
+    { to: '/annonces', label: 'Annonces', icon: 'fa-bullhorn', roles: ['admin', 'directeur'] },
+    { to: '/calendrier', label: 'Calendrier', icon: 'fa-calendar-days', roles: ['admin', 'directeur'] },
+    { to: '/cartes', label: 'Cartes', icon: 'fa-id-card', roles: ['admin', 'directeur'] },
+  ],
+  parametres: [
+    { to: '/profil', label: 'Profil', icon: 'fa-user-circle', roles: ['admin', 'directeur', 'comptable', 'enseignant'] },
+    { to: '/utilisateurs', label: 'Utilisateurs', icon: 'fa-users', roles: ['admin', 'directeur'] },
+    { to: '/parametres', label: 'Paramètres', icon: 'fa-gear', roles: ['admin', 'directeur'] },
+  ],
+};
+
 const Sidebar = ({ onClose }) => {
   const { settings } = useSettings();
   const { user } = useAuth();
+
+  const filtered = useMemo(() => {
+    const role = user?.role || '';
+    return {
+      principal: menuItems.principal.filter(m => m.roles.includes(role)),
+      parametres: menuItems.parametres.filter(m => m.roles.includes(role)),
+    };
+  }, [user?.role]);
+
   return (
     <div className="sidebar">
       <div className="sidebar-header">
@@ -25,89 +54,31 @@ const Sidebar = ({ onClose }) => {
       <div className="sidebar-nav-wrap">
         <div className="sidebar-section-title">MENU PRINCIPAL</div>
         <ul className="sidebar-nav">
-          <li>
-            <NavLink to="/" end className={({ isActive }) => isActive ? 'active' : ''} onClick={onClose}>
-              <i className="fa-solid fa-gauge-high"></i>
-              <span>Tableau de bord</span>
-            </NavLink>
-          </li>
-          <li>
-            <NavLink to="/eleves" className={({ isActive }) => isActive ? 'active' : ''} onClick={onClose}>
-              <i className="fa-solid fa-graduation-cap"></i>
-              <span>Élèves</span>
-            </NavLink>
-          </li>
-          <li>
-            <NavLink to="/enseignants" className={({ isActive }) => isActive ? 'active' : ''} onClick={onClose}>
-              <i className="fa-solid fa-chalkboard-user"></i>
-              <span>Enseignants</span>
-            </NavLink>
-          </li>
-          <li>
-            <NavLink to="/classes" className={({ isActive }) => isActive ? 'active' : ''} onClick={onClose}>
-              <i className="fa-solid fa-school"></i>
-              <span>Classes</span>
-            </NavLink>
-          </li>
-          <li>
-            <NavLink to="/presences" className={({ isActive }) => isActive ? 'active' : ''} onClick={onClose}>
-              <i className="fa-solid fa-check"></i>
-              <span>Présences</span>
-            </NavLink>
-          </li>
-          <li>
-            <NavLink to="/paiements" className={({ isActive }) => isActive ? 'active' : ''} onClick={onClose}>
-              <i className="fa-solid fa-money-bill-transfer"></i>
-              <span>Paiements</span>
-            </NavLink>
-          </li>
-          <li>
-            <NavLink to="/evaluations" className={({ isActive }) => isActive ? 'active' : ''} onClick={onClose}>
-              <i className="fa-solid fa-book-quran"></i>
-              <span>Évaluations</span>
-            </NavLink>
-          </li>
-          <li>
-            <NavLink to="/annonces" className={({ isActive }) => isActive ? 'active' : ''} onClick={onClose}>
-              <i className="fa-solid fa-bullhorn"></i>
-              <span>Annonces</span>
-            </NavLink>
-          </li>
-          <li>
-            <NavLink to="/calendrier" className={({ isActive }) => isActive ? 'active' : ''} onClick={onClose}>
-              <i className="fa-solid fa-calendar-days"></i>
-              <span>Calendrier</span>
-            </NavLink>
-          </li>
-          <li>
-            <NavLink to="/cartes" className={({ isActive }) => isActive ? 'active' : ''} onClick={onClose}>
-              <i className="fa-solid fa-id-card"></i>
-              <span>Cartes</span>
-            </NavLink>
-          </li>
+          {filtered.principal.map(m => (
+            <li key={m.to}>
+              <NavLink to={m.to} end={m.to === '/'} className={({ isActive }) => isActive ? 'active' : ''} onClick={onClose}>
+                <i className={`fa-solid ${m.icon}`}></i>
+                <span>{m.label}</span>
+              </NavLink>
+            </li>
+          ))}
         </ul>
 
-        <div className="sidebar-section-title">PARAMÈTRES</div>
-        <ul className="sidebar-nav">
-          <li>
-            <NavLink to="/profil" className={({ isActive }) => isActive ? 'active' : ''} onClick={onClose}>
-              <i className="fa-solid fa-user-circle"></i>
-              <span>Profil</span>
-            </NavLink>
-          </li>
-          <li>
-            <NavLink to="/utilisateurs" className={({ isActive }) => isActive ? 'active' : ''} onClick={onClose}>
-              <i className="fa-solid fa-users"></i>
-              <span>Utilisateurs</span>
-            </NavLink>
-          </li>
-          <li>
-            <NavLink to="/parametres" className={({ isActive }) => isActive ? 'active' : ''} onClick={onClose}>
-              <i className="fa-solid fa-gear"></i>
-              <span>Paramètres</span>
-            </NavLink>
-          </li>
-        </ul>
+        {filtered.parametres.length > 0 && (
+          <>
+            <div className="sidebar-section-title">PARAMÈTRES</div>
+            <ul className="sidebar-nav">
+              {filtered.parametres.map(m => (
+                <li key={m.to}>
+                  <NavLink to={m.to} className={({ isActive }) => isActive ? 'active' : ''} onClick={onClose}>
+                    <i className={`fa-solid ${m.icon}`}></i>
+                    <span>{m.label}</span>
+                  </NavLink>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
       </div>
 
       <div className="sidebar-footer">

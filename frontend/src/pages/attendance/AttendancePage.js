@@ -35,7 +35,11 @@ const AttendancePage = () => {
     ]).then(([s, t, c]) => {
       setStudents(s.data);
       setTeachers(t.data);
-      setClasses(c.data);
+      let classList = c.data;
+      if (user?.role === 'enseignant' && user?.classes?.length > 0) {
+        classList = c.data.filter(cl => user.classes.includes(cl.nom));
+      }
+      setClasses(classList);
       if (user && ['admin', 'directeur'].includes(user.role)) {
         api.post('/attendance/verifier-seuils').catch(() => {});
       }

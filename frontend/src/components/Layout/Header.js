@@ -1,7 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
+import api from '../../api/axios';
 
 const NotificationDropdown = ({ onClose }) => {
   const { notifications, markAsRead, markAllAsRead, fetchNotifications } = useSocket();
@@ -63,6 +64,55 @@ const Header = ({ onToggleSidebar }) => {
     return () => document.removeEventListener('mousedown', handleClick);
   }, []);
 
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const searchRef = useRef(null);
+  const searchTimer = useRef(null);
+
+  useEffect(() => {
+    const handleClick = e => { if (searchRef.current && !searchRef.current.contains(e.target)) setSearchOpen(false); };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  const doSearch = useCallback(async (q) => {
+    if (!q.trim()) { setSearchResults([]); setSearchOpen(false); return; }
+    try {
+      const res = await api.get('/students');
+      const ql = q.toLowerCase();
+      const matches = res.data.filter(s =>
+        `${s.nom} ${s.prenom}`.toLowerCase().includes(ql) ||
+        (s.matricule || '').toLowerCase().includes(ql) ||
+        (s.classe || '').toLowerCase().includes(ql)
+      ).slice(0, 8);
+      setSearchResults(matches);
+      setSearchOpen(matches.length > 0);
+    } catch { setSearchResults([]); }
+  }, []);
+
+  const handleSearchChange = (e) => {
+    const v = e.target.value;
+    setSearchQuery(v);
+    clearTimeout(searchTimer.current);
+    searchTimer.current = setTimeout(() => doSearch(v), 300);
+  };
+
+  const handleSearchKeyDown = (e) => {
+    if (e.key === 'Enter' && searchQuery.trim()) {
+      navigate(`/eleves?search=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchOpen(false);
+      setSearchQuery('');
+    }
+    if (e.key === 'Escape') { setSearchOpen(false); setSearchQuery(''); }
+  };
+
+  const goToStudent = (id) => {
+    navigate(`/eleves/${id}`);
+    setSearchOpen(false);
+    setSearchQuery('');
+  };
+
   const handleLogout = () => { logout(); navigate('/login'); };
 
   return (
@@ -71,9 +121,19 @@ const Header = ({ onToggleSidebar }) => {
         <button className="sidebar-toggle" onClick={onToggleSidebar}>
           <i className="fa-solid fa-bars"></i>
         </button>
-        <div className="topbar-search">
+        <div className="topbar-search" ref={searchRef}>
           <i className="fa-solid fa-search"></i>
-          <input type="text" placeholder="Rechercher..." />
+          <input type="text" placeholder="Rechercher un élève..." value={searchQuery} onChange={handleSearchChange} onKeyDown={handleSearchKeyDown} />
+          {searchOpen && (
+            <div className="topbar-search-dropdown">
+              {searchResults.map(s => (
+                <div key={s._id} className="topbar-search-item" onClick={() => goToStudent(s._id)}>
+                  <div className="topbar-search-item-name">{s.nom} {s.prenom}</div>
+                  <div className="topbar-search-item-info">{s.classe || '—'} · {s.matricule || `ETU-${s._id}`}</div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
       <div className="topbar-right">

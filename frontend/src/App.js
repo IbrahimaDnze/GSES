@@ -20,7 +20,7 @@ import Cartes from './pages/Cartes';
 import Parametres from './pages/Parametres';
 import ProfilePage from './pages/ProfilePage';
 import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
+import ForgotPassword from './pages/ForgotPassword';
 
 function App() {
   return (
@@ -45,7 +45,7 @@ function App() {
       <Route path="/parametres" element={<Parametres />} />
       <Route path="/profil" element={<ProfilePage />} />
       <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="*" element={<Dashboard />} />
     </Routes></SettingsProvider></ToastProvider>
   );

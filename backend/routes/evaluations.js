@@ -1,5 +1,7 @@
 const express = require('express');
 const Evaluation = require('../models/Evaluation');
+const Student = require('../models/Student');
+const Teacher = require('../models/Teacher');
 const { protect } = require('../middleware/auth');
 const router = express.Router();
 
@@ -7,6 +9,18 @@ router.get('/', protect, async (req, res) => {
   try {
     const { eleve, niveau } = req.query;
     const filter = {};
+    if (req.user.role === 'enseignant') {
+      const teacher = await Teacher.findOne({
+        $or: [
+          { email: req.user.email },
+          { nom: req.user.nom },
+        ]
+      }).select('classes');
+      if (teacher && teacher.classes.length > 0) {
+        const students = await Student.find({ classe: { $in: teacher.classes } }).select('_id');
+        filter.eleve = { $in: students.map(s => s._id) };
+      }
+    }
     if (eleve) filter.eleve = eleve;
     if (niveau) filter.niveau = niveau;
     const evaluations = await Evaluation.find(filter)

@@ -2,6 +2,7 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const Student = require('../models/Student');
+const Teacher = require('../models/Teacher');
 const Setting = require('../models/Setting');
 const Attendance = require('../models/Attendance');
 const Payment = require('../models/Payment');
@@ -20,10 +21,31 @@ const sauvegarderPhoto = (photo, prefix) => {
   return filename;
 };
 
+async function getTeacherClasses(user) {
+  console.log('[TeacherFilter] Recherche pour user:', JSON.stringify({ nom: user.nom, email: user.email }));
+  const byEmail = await Teacher.findOne({ email: user.email }).select('classes nom prenom email');
+  console.log('[TeacherFilter] Par email:', byEmail ? JSON.stringify({ nom: byEmail.nom, prenom: byEmail.prenom, classes: byEmail.classes }) : 'RIEN');
+  const byNom = await Teacher.findOne({ nom: user.nom }).select('classes nom prenom email');
+  console.log('[TeacherFilter] Par nom:', byNom ? JSON.stringify({ nom: byNom.nom, prenom: byNom.prenom, classes: byNom.classes }) : 'RIEN');
+  const allTeachers = await Teacher.find().select('nom prenom email');
+  console.log('[TeacherFilter] Tous les enseignants:', JSON.stringify(allTeachers.map(t => ({ nom: t.nom, prenom: t.prenom, email: t.email }))));
+  const teacher = byEmail || byNom;
+  if (teacher) {
+    console.log('[TeacherFilter] Utilisé:', teacher.nom, teacher.prenom, '| Classes:', teacher.classes);
+    return teacher.classes || [];
+  }
+  console.log('[TeacherFilter] AUCUN ENSEIGNANT TROUVÉ');
+  return [];
+}
+
 router.get('/', protect, async (req, res) => {
   try {
     const { classe, actif, niveau } = req.query;
     const filter = {};
+    if (req.user.role === 'enseignant') {
+      const classes = await getTeacherClasses(req.user);
+      if (classes.length > 0) filter.classe = { $in: classes };
+    }
     if (classe) filter.classe = classe;
     if (actif !== undefined) filter.actif = actif === 'true';
     if (niveau) filter.niveauCoranique = niveau;
@@ -32,6 +54,21 @@ router.get('/', protect, async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
+});
+
+router.get('/debug/teacher-match', protect, async (req, res) => {
+  const user = req.user;
+  const byEmail = await Teacher.findOne({ email: user.email }).select('nom prenom email classes');
+  const byNom = await Teacher.findOne({ nom: user.nom }).select('nom prenom email classes');
+  const allTeachers = await Teacher.find().select('nom prenom email');
+  const allStudents = await Student.find().select('nom prenom classe');
+  res.json({
+    user: { nom: user.nom, email: user.email, role: user.role },
+    byEmail: byEmail ? { nom: byEmail.nom, prenom: byEmail.prenom, email: byEmail.email, classes: byEmail.classes } : null,
+    byNom: byNom ? { nom: byNom.nom, prenom: byNom.prenom, email: byNom.email, classes: byNom.classes } : null,
+    allTeachers: allTeachers.map(t => ({ nom: t.nom, prenom: t.prenom, email: t.email })),
+    allStudents: allStudents.map(s => ({ nom: s.nom, prenom: s.prenom, classe: s.classe })),
+  });
 });
 
 router.get('/:id', protect, async (req, res) => {

@@ -12,7 +12,9 @@ const userSchema = new mongoose.Schema({
   },
   telephone: { type: String },
   photo: { type: String },
-  actif: { type: Boolean, default: true }
+  actif: { type: Boolean, default: true },
+  resetPasswordToken: { type: String },
+  resetPasswordExpire: { type: Date }
 }, { timestamps: true });
 
 userSchema.pre('save', async function (next) {

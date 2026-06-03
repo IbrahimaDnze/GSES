@@ -75,9 +75,7 @@ const LoginPage = () => {
               <i className="fa-solid fa-right-to-bracket"></i> Se connecter
             </button>
           </form>
-          <p className="auth-switch">
-            Vous n'avez pas de compte ? <Link to="/register">S'inscrire</Link>
-          </p>
+
         </div>
       </div>
     </div>

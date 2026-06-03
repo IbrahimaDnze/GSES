@@ -1,6 +1,8 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const User = require('../models/User');
+const Teacher = require('../models/Teacher');
 const { protect } = require('../middleware/auth');
 const router = express.Router();
 
@@ -17,6 +19,21 @@ router.post('/register', async (req, res) => {
   }
 });
 
+async function ajouterClassesEnseignant(userObj) {
+  if (userObj.role === 'enseignant') {
+    const teacher = await Teacher.findOne({
+      $or: [
+        { email: userObj.email },
+        { nom: userObj.nom },
+      ]
+    }).select('classes');
+    if (teacher) {
+      userObj = { ...(userObj.toObject ? userObj.toObject() : userObj), classes: teacher.classes || [] };
+    }
+  }
+  return userObj;
+}
+
 router.post('/login', async (req, res) => {
   try {
     const { email, motDePasse } = req.body;
@@ -26,17 +43,20 @@ router.post('/login', async (req, res) => {
     const isMatch = await user.comparerMotDePasse(motDePasse);
     if (!isMatch) return res.status(401).json({ message: 'Email ou mot de passe incorrect' });
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '30d' });
-    res.json({
-      token,
-      user: { id: user._id, nom: user.nom, email: user.email, role: user.role, photo: user.photo, telephone: user.telephone }
-    });
+    let userData = { id: user._id, nom: user.nom, email: user.email, role: user.role, photo: user.photo, telephone: user.telephone };
+    userData = await ajouterClassesEnseignant(userData);
+    res.json({ token, user: userData });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
 
 router.get('/me', protect, async (req, res) => {
-  res.json(req.user);
+  let userData = req.user;
+  if (userData.role === 'enseignant') {
+    userData = await ajouterClassesEnseignant(userData);
+  }
+  res.json(userData);
 });
 
 router.put('/profile', protect, async (req, res) => {
@@ -74,6 +94,44 @@ router.put('/profile', protect, async (req, res) => {
     });
   } catch (error) {
     res.status(400).json({ message: error.message });
+  }
+});
+
+router.post('/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ message: 'Email requis' });
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message: 'Aucun compte avec cet email' });
+    const code = crypto.randomInt(100000, 999999).toString();
+    user.resetPasswordToken = code;
+    user.resetPasswordExpire = Date.now() + 15 * 60 * 1000;
+    await user.save();
+    console.log(`[PasswordReset] Code pour ${email} : ${code}`);
+    res.json({ message: 'Code de réinitialisation envoyé', code });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+router.post('/reset-password', async (req, res) => {
+  try {
+    const { email, code, motDePasse } = req.body;
+    if (!email || !code || !motDePasse) return res.status(400).json({ message: 'Email, code et nouveau mot de passe requis' });
+    const user = await User.findOne({
+      email,
+      resetPasswordToken: code,
+      resetPasswordExpire: { $gt: Date.now() }
+    });
+    if (!user) return res.status(400).json({ message: 'Code invalide ou expiré' });
+    user.motDePasse = motDePasse;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+    await user.save();
+    console.log(`[PasswordReset] Mot de passe réinitialisé pour ${email}`);
+    res.json({ message: 'Mot de passe réinitialisé avec succès' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 });
 

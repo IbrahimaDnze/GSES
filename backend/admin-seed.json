@@ -1,0 +1,13 @@
+[
+  {
+    "nom": "Administrateur",
+    "email": "ibrahimasb8@gmail.com",
+    "motDePasse": "$2a$10$oU/1PfTf3GLXu02v0BMmieXswGwU6PF5QQ7IgMIMYu2xHUikiFdES",
+    "role": "admin",
+    "actif": true,
+    "telephone": "",
+    "photo": "",
+    "createdAt": { "$date": "2025-09-01T00:00:00.000Z" },
+    "updatedAt": { "$date": "2025-09-01T00:00:00.000Z" }
+  }
+]

@@ -5,12 +5,11 @@ import Avatar from '../../components/Common/Avatar';
 import { useToast } from '../../components/Common/Toast';
 import api from '../../api/axios';
 
-const niveaux = ['Alif', 'Ba', 'Coran Debutant', 'Memorisation', 'Tajwid'];
-
 const EvaluationPage = () => {
   const { addToast } = useToast();
   const [evaluations, setEvaluations] = useState([]);
   const [students, setStudents] = useState([]);
+  const [niveaux, setNiveaux] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filtreNiveau, setFiltreNiveau] = useState('');
@@ -40,6 +39,10 @@ const EvaluationPage = () => {
 
   useEffect(() => { fetchEvals(); }, []);
   useEffect(() => { fetchEvals(); }, [filtreEleve]);
+
+  useEffect(() => {
+    api.get('/levels').then(r => setNiveaux(r.data.map(l => l.nom))).catch(() => {});
+  }, []);
 
   const filtered = useMemo(() => {
     return evaluations.filter(e => {

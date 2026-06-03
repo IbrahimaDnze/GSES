@@ -1,5 +1,6 @@
 const express = require('express');
 const User = require('../models/User');
+const Teacher = require('../models/Teacher');
 const { protect, autoriserRoles } = require('../middleware/auth');
 const router = express.Router();
 
@@ -17,6 +18,10 @@ router.post('/', protect, autoriserRoles('admin'), async (req, res) => {
     const { nom, email, motDePasse, role, telephone } = req.body;
     const existing = await User.findOne({ email });
     if (existing) return res.status(400).json({ message: 'Email deja utilise' });
+    if (role === 'enseignant') {
+      const teacher = await Teacher.findOne({ nom });
+      if (!teacher) return res.status(400).json({ message: 'Aucun enseignant trouvé avec ce nom. Créez d\'abord l\'enseignant dans la section Enseignants.' });
+    }
     const user = await User.create({ nom, email, motDePasse, role, telephone });
     res.status(201).json({ id: user._id, nom: user.nom, email: user.email, role: user.role });
   } catch (error) {
