@@ -5,7 +5,12 @@ const cors = require('cors');
 const connectDB = require('./config/db');
 const mongoose = require('mongoose');
 const { setupSocket } = require('./socket');
+const dns = require('dns');
 
+dns.setServers([
+  '8.8.8.8',
+  '8.8.4.4'
+]);
 dotenv.config();
 connectDB();
 
