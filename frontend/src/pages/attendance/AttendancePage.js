@@ -3,6 +3,7 @@ import Layout from '../../components/Layout/Layout';
 import Loading from '../../components/Common/Loading';
 import Avatar from '../../components/Common/Avatar';
 import { useToast } from '../../components/Common/Toast';
+import { useAuth } from '../../context/AuthContext';
 import api from '../../api/axios';
 
 const STATUTS = ['present', 'absent', 'retard', 'justifie'];
@@ -12,6 +13,7 @@ const STATUT_ICONS = { present: 'fa-check-circle', absent: 'fa-times-circle', re
 
 const AttendancePage = () => {
   const { addToast } = useToast();
+  const { user } = useAuth();
   const [students, setStudents] = useState([]);
   const [teachers, setTeachers] = useState([]);
   const [classes, setClasses] = useState([]);
@@ -34,9 +36,12 @@ const AttendancePage = () => {
       setStudents(s.data);
       setTeachers(t.data);
       setClasses(c.data);
+      if (user && ['admin', 'directeur'].includes(user.role)) {
+        api.post('/attendance/verifier-seuils').catch(() => {});
+      }
     }).catch(err => console.error(err))
     .finally(() => setLoading(false));
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     if (date) {
@@ -118,10 +123,10 @@ const AttendancePage = () => {
     <Layout>
       <div className="page-header" style={{ marginBottom: 0 }}>
         <h2 style={{ fontSize: 18, letterSpacing: 1, color: '#0a2e2a' }}>GESTION DES PRÉSENCES</h2>
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+        <div className="att-filters-row">
           <div className="stu-filter-group" style={{ marginBottom: 0 }}>
             <i className="fa-solid fa-calendar-day"></i>
-            <input type="date" value={date} onChange={e => setDate(e.target.value)} style={{ width: 150 }} />
+            <input type="date" value={date} onChange={e => setDate(e.target.value)} />
           </div>
           <div className="stu-filter-group" style={{ marginBottom: 0 }}>
             <select value={type} onChange={e => { setType(e.target.value); setFiltreClasse(''); setFiltreStatut(''); }}>
@@ -132,7 +137,7 @@ const AttendancePage = () => {
           {type === 'eleve' && (
             <div className="stu-filter-group" style={{ marginBottom: 0 }}>
               <i className="fa-solid fa-layer-group"></i>
-              <select value={filtreClasse} onChange={e => setFiltreClasse(e.target.value)} style={{ minWidth: 160 }}>
+              <select value={filtreClasse} onChange={e => setFiltreClasse(e.target.value)}>
                 <option value="">Toutes les classes</option>
                 {classes.map(c => (
                   <option key={c._id || c.nom} value={c.nom}>{c.nom}</option>

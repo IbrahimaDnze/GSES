@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '../components/Layout/Layout';
 import api from '../api/axios';
+import { useSocket } from '../context/SocketContext';
 
 const Dashboard = () => {
   const [students, setStudents] = useState([]);
@@ -13,6 +14,7 @@ const Dashboard = () => {
   const [events, setEvents] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
+  const socket = useSocket();
 
   const today = new Date().toISOString().split('T')[0];
 
@@ -33,6 +35,18 @@ const Dashboard = () => {
       setEvents(ev); setAnnouncements(an);
     }).catch(console.error).finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (!socket?.socket) return;
+    const onNew = (ann) => setAnnouncements(prev => [ann, ...prev]);
+    const onDelete = (id) => setAnnouncements(prev => prev.filter(a => a._id !== id));
+    socket.socket.on('new-announcement', onNew);
+    socket.socket.on('delete-announcement', onDelete);
+    return () => {
+      socket.socket.off('new-announcement', onNew);
+      socket.socket.off('delete-announcement', onDelete);
+    };
+  }, [socket?.socket]);
 
   const todayAttendance = useMemo(() => attendances.filter(a => a.date?.startsWith(today)), [attendances, today]);
 
@@ -240,7 +254,7 @@ const Dashboard = () => {
         <div className="dash-card">
           <div className="dash-card-header">
             <h3><i className="fa-solid fa-bullhorn" style={{ color: '#b8860b' }}></i> Annonces importantes</h3>
-            <button className="dash-btn-link">Gérer</button>
+            <Link to="/annonces" className="dash-btn-link">Gérer <i className="fa-solid fa-arrow-right" style={{ fontSize: 10 }}></i></Link>
           </div>
           {dashboardAnnouncements.length === 0 ? (
             <div style={{ padding: 20, textAlign: 'center', color: '#9ca3af' }}>
@@ -317,7 +331,7 @@ const Dashboard = () => {
       </div>
 
       {/* Footer */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 0 4px', color: '#9ca3af', fontSize: 13, borderTop: '1px solid #e8e4db', marginTop: 6 }}>
+      <div className="dash-footer">
         <span>Année scolaire 2025 - 2026</span>
         <span><i className="fa-solid fa-database"></i> {students.length} élèves · {teachers.length} enseignants · {payments.length} paiements · {evaluations.length} évaluations</span>
       </div>

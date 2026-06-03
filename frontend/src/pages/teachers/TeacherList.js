@@ -162,7 +162,7 @@ const TeacherList = () => {
       <div className="stu-filters">
         <div className="stu-filter-group">
           <i className="fa-solid fa-search"></i>
-          <input placeholder="Rechercher un enseignant..." value={search} onChange={e => setSearch(e.target.value)} style={{ minWidth: 220 }} />
+          <input placeholder="Rechercher un enseignant..." value={search} onChange={e => setSearch(e.target.value)} />
         </div>
         <div className="stu-filter-group">
           <select value={filtreMatiere} onChange={e => setFiltreMatiere(e.target.value)}>

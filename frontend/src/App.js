@@ -14,6 +14,7 @@ import PaymentList from './pages/payments/PaymentList';
 import EvaluationPage from './pages/evaluations/EvaluationPage';
 import ReportsPage from './pages/reports/ReportsPage';
 import UserList from './pages/users/UserList';
+import Annonces from './pages/Annonces';
 import Calendrier from './pages/Calendrier';
 import Cartes from './pages/Cartes';
 import Parametres from './pages/Parametres';
@@ -38,6 +39,7 @@ function App() {
       <Route path="/evaluations" element={<EvaluationPage />} />
       <Route path="/rapports" element={<ReportsPage />} />
       <Route path="/utilisateurs" element={<UserList />} />
+      <Route path="/annonces" element={<Annonces />} />
       <Route path="/calendrier" element={<Calendrier />} />
       <Route path="/cartes" element={<Cartes />} />
       <Route path="/parametres" element={<Parametres />} />

@@ -1,8 +1,10 @@
 const express = require('express');
+const http = require('http');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const connectDB = require('./config/db');
 const mongoose = require('mongoose');
+const { setupSocket } = require('./socket');
 
 dotenv.config();
 connectDB();
@@ -37,6 +39,11 @@ app.use('/api/events', require('./routes/events'));
 app.use('/api/announcements', require('./routes/announcements'));
 app.use('/api/settings', require('./routes/settings'));
 app.use('/api/cards', require('./routes/cards'));
+app.use('/api/notifications', require('./routes/notifications'));
+
+const server = http.createServer(app);
+const io = setupSocket(server);
+app.set('io', io);
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+server.listen(PORT, () => console.log(`Server running on port ${PORT}`));

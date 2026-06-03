@@ -15,6 +15,7 @@ const StudentList = () => {
   const [filtreClasse, setFiltreClasse] = useState('');
   const [filtreNiveau, setFiltreNiveau] = useState('');
   const [filtreStatut, setFiltreStatut] = useState('');
+  const [niveaux, setNiveaux] = useState([]);
   const [page, setPage] = useState(1);
   const perPage = 10;
 
@@ -29,6 +30,10 @@ const StudentList = () => {
   };
 
   useEffect(() => { fetchStudents(); }, [filtreNiveau]);
+
+  useEffect(() => {
+    api.get('/levels').then(r => setNiveaux(r.data)).catch(() => {});
+  }, []);
 
   const filtered = useMemo(() => {
     return students.filter(s => {
@@ -170,11 +175,9 @@ const StudentList = () => {
         <div className="stu-filter-group">
           <select value={filtreNiveau} onChange={e => setFiltreNiveau(e.target.value)}>
             <option value="">Tous niveaux</option>
-            <option value="Alif">Alif</option>
-            <option value="Ba">Ba</option>
-            <option value="Coran Debutant">Coran Débutant</option>
-            <option value="Memorisation">Mémorisation</option>
-            <option value="Tajwid">Tajwid</option>
+            {[...new Set([...niveaux.map(n => n.nom), ...students.map(s => s.niveauCoranique).filter(Boolean)])].map(n => (
+              <option key={n} value={n}>{n}</option>
+            ))}
           </select>
         </div>
         <div className="stu-filter-group">

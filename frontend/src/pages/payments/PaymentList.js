@@ -13,7 +13,9 @@ const PaymentList = () => {
   const { addToast } = useToast();
   const [payments, setPayments] = useState([]);
   const [students, setStudents] = useState([]);
+  const [impayes, setImpayes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showImpayes, setShowImpayes] = useState(false);
   const [search, setSearch] = useState('');
   const [filtreType, setFiltreType] = useState('');
   const [filtreMode, setFiltreMode] = useState('');
@@ -41,7 +43,8 @@ const PaymentList = () => {
     Promise.all([
       api.get('/payments', { params }).then(r => r.data),
       api.get('/students').then(r => r.data),
-    ]).then(([p, s]) => { setPayments(p); setStudents(s); })
+      api.get('/payments/impayes', { params }).then(r => r.data),
+    ]).then(([p, s, i]) => { setPayments(p); setStudents(s); setImpayes(i); })
       .catch(console.error).finally(() => setLoading(false));
   };
 
@@ -178,7 +181,66 @@ const PaymentList = () => {
             <div className="stu-stat-label">Inscriptions</div>
           </div>
         </div>
+        <div className="stu-stat-card" style={{ borderTopColor: '#dc2626', cursor: 'pointer' }} onClick={() => setShowImpayes(!showImpayes)}>
+          <div className="stu-stat-icon" style={{ background: '#fef2f2', color: '#dc2626' }}>
+            <i className="fa-solid fa-triangle-exclamation"></i>
+          </div>
+          <div>
+            <div className="stu-stat-value" style={{ color: '#dc2626' }}>{impayes.length}</div>
+            <div className="stu-stat-label">Impayés <span style={{ fontWeight: 400, fontSize: 11 }}>({filtreMois ? MOIS[parseInt(filtreMois)-1] : MOIS[new Date().getMonth()]} {filtreAnnee || new Date().getFullYear()})</span></div>
+          </div>
+        </div>
       </div>
+
+      {showImpayes && (
+        <div style={{ marginBottom: 20, background: '#fff', borderRadius: 14, border: '1px solid #fecaca', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+          <div style={{ padding: '14px 20px', background: '#fef2f2', borderBottom: '1px solid #fecaca', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontWeight: 700, fontSize: 14, color: '#b91c1c' }}>
+              <i className="fa-solid fa-triangle-exclamation" style={{ marginRight: 8 }}></i>
+              {impayes.length} élève{impayes.length > 1 ? 's' : ''} n'ayant pas payé
+            </span>
+            <button className="btn btn-sm" style={{ background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', padding: '3px 10px', fontSize: 12 }} onClick={() => setShowImpayes(false)}>
+              <i className="fa-solid fa-times"></i> Fermer
+            </button>
+          </div>
+          {impayes.length === 0 ? (
+            <div style={{ padding: 24, textAlign: 'center', color: '#059669' }}>
+              <i className="fa-solid fa-check-circle" style={{ fontSize: 28, display: 'block', marginBottom: 8 }}></i>
+              Tous les élèves ont payé pour cette période
+            </div>
+          ) : (
+            <div style={{ padding: 12 }}>
+              <table>
+                <thead>
+                  <tr>
+                    <th className="col-nom">Élève</th>
+                    <th>Matricule</th>
+                    <th>Classe</th>
+                    <th>Tuteur</th>
+                    <th>Contact</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {impayes.map(s => (
+                    <tr key={s._id}>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <Avatar nom={s.nom} prenom={s.prenom} photo={s.photo} size={30} />
+                          <span style={{ fontWeight: 600, fontSize: 13.5 }}>{s.nom} {s.prenom}</span>
+                        </div>
+                      </td>
+                      <td style={{ fontSize: 12, color: '#78716c', fontFamily: 'monospace' }}>{s.matricule || `ETU-${s._id.slice(-6)}`}</td>
+                      <td style={{ fontSize: 13, color: '#57534e' }}>{s.classe || '—'}</td>
+                      <td style={{ fontSize: 13, color: '#57534e' }}>{s.nomTuteur}</td>
+                      <td style={{ fontSize: 13, color: '#57534e' }}>{s.contactParent}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="stu-filters">
         <div className="stu-filter-group">
@@ -207,7 +269,7 @@ const PaymentList = () => {
           <input type="number" placeholder="Année" value={filtreAnnee} onChange={e => setFiltreAnnee(e.target.value)} style={{ width: 90 }} />
         </div>
         {(search || filtreType || filtreMode || filtreMois || filtreAnnee) && (
-          <button className="btn btn-sm" style={{ background: '#f1f0ed', color: '#57534e' }} onClick={() => { setSearch(''); setFiltreType(''); setFiltreMode(''); setFiltreMois(''); setFiltreAnnee(''); }}>
+          <button className="btn btn-sm" style={{ background: '#f1f0ed', color: '#57534e' }} onClick={() => { setSearch(''); setFiltreType(''); setFiltreMode(''); setFiltreMois(''); setFiltreAnnee(''); setShowImpayes(false); }}>
             <i className="fa-solid fa-rotate"></i> Réinitialiser
           </button>
         )}
@@ -307,7 +369,7 @@ const PaymentList = () => {
       {showDrawer && (
         <>
           <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 999 }} onClick={() => setShowDrawer(false)} />
-          <div style={{ position: 'fixed', top: 0, right: 0, width: 440, height: '100vh', background: '#fff', zIndex: 1000, boxShadow: '-4px 0 24px rgba(0,0,0,0.12)', display: 'flex', flexDirection: 'column' }}>
+          <div className="drawer-panel">
             <div style={{ padding: '20px 24px', borderBottom: '1px solid #f1f0ed', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h3 style={{ margin: 0, color: '#0a2e2a', fontSize: 16 }}>
                 <i className="fa-solid fa-coins" style={{ color: '#059669', marginRight: 8 }}></i>

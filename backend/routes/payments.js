@@ -1,8 +1,29 @@
 const express = require('express');
 const Payment = require('../models/Payment');
+const Student = require('../models/Student');
 const Setting = require('../models/Setting');
 const { protect, autoriserRoles } = require('../middleware/auth');
 const router = express.Router();
+
+router.get('/impayes', protect, async (req, res) => {
+  try {
+    const { mois, annee } = req.query;
+    const m = mois || String(new Date().getMonth() + 1).padStart(2, '0');
+    const a = annee || new Date().getFullYear();
+
+    const payeIds = await Payment.distinct('eleve', {
+      type: 'mensualite', mois: m, annee: parseInt(a)
+    });
+
+    const impayes = await Student.find({
+      actif: true, _id: { $nin: payeIds }
+    }).select('nom prenom photo matricule classe nomTuteur contactParent');
+
+    res.json(impayes);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
 
 router.get('/', protect, async (req, res) => {
   try {
