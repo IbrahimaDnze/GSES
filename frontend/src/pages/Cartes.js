@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Layout from '../components/Layout/Layout';
 import api from '../api/axios';
 import { Toaster, toast } from 'react-hot-toast';
+import { UPLOADS_URL } from '../config';
 
 const Cartes = () => {
   const [onglet, setOnglet] = useState('eleve');
@@ -142,7 +143,7 @@ const Cartes = () => {
                   <input type="checkbox" checked={isSelected} onChange={() => basculer(item._id)} style={{ width: 18, height: 18, accentColor: '#1E3B2E' }} />
                   <div style={{ width: 44, height: 44, borderRadius: 8, background: '#f1f0ed', overflow: 'hidden', flexShrink: 0 }}>
                     {item.photo ? (
-                      <img src={`http://localhost:5001/uploads/${item.photo}`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <img src={`${UPLOADS_URL}/${item.photo}`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     ) : (
                       <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#a8a29e', fontSize: 16 }}>
                         <i className="fa-solid fa-user"></i>

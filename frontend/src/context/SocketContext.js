@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { io } from 'socket.io-client';
 import { useAuth } from './AuthContext';
+import { SOCKET_URL } from '../config';
 import api from '../api/axios';
 
 const SocketContext = createContext();
@@ -17,7 +18,7 @@ export const SocketProvider = ({ children }) => {
     const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     if (!token || !user) return;
 
-    const socket = io('http://localhost:5001', { auth: { token } });
+    const socket = io(SOCKET_URL, { auth: { token } });
     socketRef.current = socket;
 
     socket.on('new-notification', (notif) => {

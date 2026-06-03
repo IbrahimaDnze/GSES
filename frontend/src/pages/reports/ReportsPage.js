@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Layout from '../../components/Layout/Layout';
 import { useToast } from '../../components/Common/Toast';
+import { API_BASE } from '../../config';
 import api from '../../api/axios';
 
 const ReportsPage = () => {
@@ -11,7 +12,7 @@ const ReportsPage = () => {
   const download = async (url, filename) => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:5001/api${url}`, {
+      const res = await fetch(`${API_BASE}${url}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (!res.ok) throw new Error('Erreur');

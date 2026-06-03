@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import Layout from '../components/Layout/Layout';
 import api from '../api/axios';
 import { useSocket } from '../context/SocketContext';
+import { UPLOADS_URL } from '../config';
 
 const Dashboard = () => {
   const [students, setStudents] = useState([]);
@@ -280,7 +281,7 @@ const Dashboard = () => {
             <div className="eval-item" key={e._id}>
               <div className="eval-icon" style={{ overflow: 'hidden', padding: 0 }}>
                 {e.eleve?.photo ? (
-                  <img src={`http://localhost:5001/uploads/${e.eleve.photo}`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={`${UPLOADS_URL}/${e.eleve.photo}`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (
                   <i className="fa-solid fa-star" style={{ color: '#0d7a5e' }}></i>
                 )}

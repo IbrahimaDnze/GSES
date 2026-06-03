@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useSettings } from '../../context/SettingsContext';
 import { useAuth } from '../../context/AuthContext';
+import { UPLOADS_URL } from '../../config';
 import Avatar from '../Common/Avatar';
 
 const menuItems = {
@@ -41,7 +42,7 @@ const Sidebar = ({ onClose }) => {
       <div className="sidebar-header">
         <div className="sidebar-logo">
           <div className="sidebar-logo-icon">
-            {settings?.logo ? <img src={`http://localhost:5001/uploads/${settings.logo}`} alt="Logo" style={{ width: 60, height: 60, borderRadius: 10, objectFit: 'cover' }} /> : <i className="fa-solid fa-quran"></i>}
+            {settings?.logo ? <img src={`${UPLOADS_URL}/${settings.logo}`} alt="Logo" style={{ width: 60, height: 60, borderRadius: 10, objectFit: 'cover' }} /> : <i className="fa-solid fa-quran"></i>}
           </div>
           <div>
             <h2>{settings?.nomEcole || 'École Coranique'}</h2>
