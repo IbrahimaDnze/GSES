@@ -3,6 +3,7 @@ const Payment = require('../models/Payment');
 const Student = require('../models/Student');
 const Setting = require('../models/Setting');
 const { protect, autoriserRoles } = require('../middleware/auth');
+const { fetchImageBuffer } = require('../config/cloudinary');
 const router = express.Router();
 
 router.get('/impayes', protect, async (req, res) => {
@@ -85,8 +86,6 @@ router.get('/:id/recu', protect, async (req, res) => {
     const payment = await Payment.findById(req.params.id).populate('eleve');
     if (!payment) return res.status(404).json({ message: 'Paiement non trouve' });
     const PDFDocument = require('pdfkit');
-    const fs = require('fs');
-    const path = require('path');
 
     const settings = await Setting.findOne() || {};
 
@@ -107,9 +106,9 @@ router.get('/:id/recu', protect, async (req, res) => {
     doc.rect(0, 0, doc.page.width, 120).fill(bgColor);
 
     if (settings.logo) {
-      const logoPath = path.join(__dirname, '..', 'uploads', settings.logo);
-      if (fs.existsSync(logoPath)) {
-        doc.image(logoPath, leftX + 15, 15, { width: 55 });
+      const logoBuf = await fetchImageBuffer(settings.logo);
+      if (logoBuf) {
+        doc.image(logoBuf, leftX + 15, 15, { width: 55 });
       }
     }
 
@@ -180,12 +179,12 @@ router.get('/:id/recu', protect, async (req, res) => {
     }
 
     if (settings.signature) {
-      const sigPath = path.join(__dirname, '..', 'uploads', settings.signature);
-      if (fs.existsSync(sigPath)) {
+      const sigBuf = await fetchImageBuffer(settings.signature);
+      if (sigBuf) {
         doc.moveDown(3);
         const signY = doc.y;
         doc.rect(leftX, signY, pageWidth, 1).fill(borderColor);
-        doc.image(sigPath, rightX - 100, signY + 8, { width: 80 });
+        doc.image(sigBuf, rightX - 100, signY + 8, { width: 80 });
         doc.moveDown(2);
       }
     }

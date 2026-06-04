@@ -1,6 +1,4 @@
 const express = require('express');
-const fs = require('fs');
-const path = require('path');
 const Student = require('../models/Student');
 const Teacher = require('../models/Teacher');
 const Setting = require('../models/Setting');
@@ -8,18 +6,8 @@ const Attendance = require('../models/Attendance');
 const Payment = require('../models/Payment');
 const Evaluation = require('../models/Evaluation');
 const { protect, autoriserRoles } = require('../middleware/auth');
+const { uploadImage, fetchImageBuffer } = require('../config/cloudinary');
 const router = express.Router();
-
-const sauvegarderPhoto = (photo, prefix) => {
-  if (!photo || !photo.startsWith('data:image')) return photo;
-  const matches = photo.match(/^data:image\/(png|jpeg|jpg);base64,(.+)$/);
-  if (!matches) return photo;
-  const ext = matches[1] === 'jpeg' ? 'jpg' : matches[1];
-  const buffer = Buffer.from(matches[2], 'base64');
-  const filename = `${prefix}-${Date.now()}.${ext}`;
-  fs.writeFileSync(path.join(__dirname, '..', 'uploads', filename), buffer);
-  return filename;
-};
 
 async function getTeacherClasses(user) {
   console.log('[TeacherFilter] Recherche pour user:', JSON.stringify({ nom: user.nom, email: user.email }));
@@ -84,7 +72,7 @@ router.get('/:id', protect, async (req, res) => {
 router.post('/', protect, async (req, res) => {
   try {
     const data = req.body;
-    if (data.photo) data.photo = sauvegarderPhoto(data.photo, 'student');
+    if (data.photo) data.photo = await uploadImage(data.photo, 'students');
     const student = await Student.create(data);
     res.status(201).json(student);
   } catch (error) {
@@ -95,7 +83,7 @@ router.post('/', protect, async (req, res) => {
 router.put('/:id', protect, async (req, res) => {
   try {
     const data = req.body;
-    if (data.photo) data.photo = sauvegarderPhoto(data.photo, 'student');
+    if (data.photo) data.photo = await uploadImage(data.photo, 'students');
     const student = await Student.findByIdAndUpdate(req.params.id, data, { new: true });
     if (!student) return res.status(404).json({ message: 'Eleve non trouve' });
     res.json(student);
@@ -136,8 +124,8 @@ router.get('/export/pdf', protect, async (req, res) => {
     doc.pipe(res);
 
     if (settings.logo) {
-      const logoPath = path.join(__dirname, '..', 'uploads', settings.logo);
-      if (fs.existsSync(logoPath)) doc.image(logoPath, 30, 15, { width: 35 });
+      const logoBuf = await fetchImageBuffer(settings.logo);
+      if (logoBuf) doc.image(logoBuf, 30, 15, { width: 35 });
     }
 
     doc.fontSize(16).font('Helvetica-Bold').fillColor('#1E3B2E').text(schoolName, { align: 'center' });
@@ -192,8 +180,8 @@ router.get('/export/pdf', protect, async (req, res) => {
 
     if (settings.signature) {
       doc.moveDown(1);
-      const sigPath = path.join(__dirname, '..', 'uploads', settings.signature);
-      if (fs.existsSync(sigPath)) doc.image(sigPath, doc.page.width - 130, doc.y, { width: 80 });
+      const sigBuf = await fetchImageBuffer(settings.signature);
+      if (sigBuf) doc.image(sigBuf, doc.page.width - 130, doc.y, { width: 80 });
     }
 
     doc.end();

@@ -1,12 +1,8 @@
 const express = require('express');
-const fs = require('fs');
-const path = require('path');
 const Setting = require('../models/Setting');
 const { protect, autoriserRoles } = require('../middleware/auth');
+const { uploadImage } = require('../config/cloudinary');
 const router = express.Router();
-
-const uploadsDir = path.join(__dirname, '..', 'uploads');
-if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 
 router.get('/', async (req, res) => {
   try {
@@ -34,23 +30,13 @@ router.put('/', protect, autoriserRoles('admin', 'directeur'), async (req, res) 
     if (devise !== undefined) settings.devise = devise;
 
     if (logo && logo.startsWith('data:')) {
-      const matches = logo.match(/^data:image\/(\w+);base64,([\s\S]+)$/);
-      if (matches) {
-        const ext = matches[1] === 'png' ? 'png' : 'jpg';
-        const filename = `logo-${Date.now()}.${ext}`;
-        fs.writeFileSync(path.join(uploadsDir, filename), matches[2], 'base64');
-        settings.logo = filename;
-      }
+      const result = await uploadImage(logo, 'logos');
+      if (result) settings.logo = result;
     }
 
     if (signature && signature.startsWith('data:')) {
-      const matches = signature.match(/^data:image\/(\w+);base64,([\s\S]+)$/);
-      if (matches) {
-        const ext = matches[1] === 'png' ? 'png' : 'jpg';
-        const filename = `signature-${Date.now()}.${ext}`;
-        fs.writeFileSync(path.join(uploadsDir, filename), matches[2], 'base64');
-        settings.signature = filename;
-      }
+      const result = await uploadImage(signature, 'signatures');
+      if (result) settings.signature = result;
     }
 
     await settings.save();

@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const User = require('../models/User');
 const Teacher = require('../models/Teacher');
 const { protect } = require('../middleware/auth');
+const { uploadImage } = require('../config/cloudinary');
 const router = express.Router();
 
 router.post('/register', async (req, res) => {
@@ -74,17 +75,8 @@ router.put('/profile', protect, async (req, res) => {
     if (motDePasse) user.motDePasse = motDePasse;
 
     if (photo && photo.startsWith('data:')) {
-      const matches = photo.match(/^data:image\/(\w+);base64,([\s\S]+)$/);
-      if (matches) {
-        const ext = matches[1] === 'png' ? 'png' : 'jpg';
-        const filename = `admin-${Date.now()}.${ext}`;
-        const fs = require('fs');
-        const path = require('path');
-        const uploadsDir = path.join(__dirname, '..', 'uploads');
-        if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
-        fs.writeFileSync(path.join(uploadsDir, filename), matches[2], 'base64');
-        user.photo = filename;
-      }
+      const result = await uploadImage(photo, 'photos');
+      if (result) user.photo = result;
     }
 
     await user.save();

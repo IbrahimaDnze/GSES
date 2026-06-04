@@ -1,22 +1,10 @@
 const express = require('express');
-const fs = require('fs');
-const path = require('path');
 const Teacher = require('../models/Teacher');
 const Setting = require('../models/Setting');
 const Attendance = require('../models/Attendance');
 const { protect, autoriserRoles } = require('../middleware/auth');
+const { uploadImage, fetchImageBuffer } = require('../config/cloudinary');
 const router = express.Router();
-
-const sauvegarderPhoto = (photo, prefix) => {
-  if (!photo || !photo.startsWith('data:image')) return photo;
-  const matches = photo.match(/^data:image\/(png|jpeg|jpg);base64,(.+)$/);
-  if (!matches) return photo;
-  const ext = matches[1] === 'jpeg' ? 'jpg' : matches[1];
-  const buffer = Buffer.from(matches[2], 'base64');
-  const filename = `${prefix}-${Date.now()}.${ext}`;
-  fs.writeFileSync(path.join(__dirname, '..', 'uploads', filename), buffer);
-  return filename;
-};
 
 router.get('/', protect, async (req, res) => {
   try {
@@ -40,7 +28,7 @@ router.get('/:id', protect, async (req, res) => {
 router.post('/', protect, autoriserRoles('admin', 'directeur'), async (req, res) => {
   try {
     const data = req.body;
-    if (data.photo) data.photo = sauvegarderPhoto(data.photo, 'teacher');
+    if (data.photo) data.photo = await uploadImage(data.photo, 'teachers');
     const teacher = await Teacher.create(data);
     res.status(201).json(teacher);
   } catch (error) {
@@ -51,7 +39,7 @@ router.post('/', protect, autoriserRoles('admin', 'directeur'), async (req, res)
 router.put('/:id', protect, autoriserRoles('admin', 'directeur'), async (req, res) => {
   try {
     const data = req.body;
-    if (data.photo) data.photo = sauvegarderPhoto(data.photo, 'teacher');
+    if (data.photo) data.photo = await uploadImage(data.photo, 'teachers');
     const teacher = await Teacher.findByIdAndUpdate(req.params.id, data, { new: true });
     if (!teacher) return res.status(404).json({ message: 'Enseignant non trouve' });
     res.json(teacher);
@@ -84,8 +72,8 @@ router.get('/export/pdf', protect, async (req, res) => {
     doc.pipe(res);
 
     if (settings.logo) {
-      const logoPath = path.join(__dirname, '..', 'uploads', settings.logo);
-      if (fs.existsSync(logoPath)) doc.image(logoPath, 30, 15, { width: 35 });
+      const logoBuf = await fetchImageBuffer(settings.logo);
+      if (logoBuf) doc.image(logoBuf, 30, 15, { width: 35 });
     }
 
     doc.fontSize(16).font('Helvetica-Bold').fillColor('#1E3B2E').text(schoolName, { align: 'center' });
@@ -130,8 +118,8 @@ router.get('/export/pdf', protect, async (req, res) => {
 
     if (settings.signature) {
       doc.moveDown(1);
-      const sigPath = path.join(__dirname, '..', 'uploads', settings.signature);
-      if (fs.existsSync(sigPath)) doc.image(sigPath, doc.page.width - 130, doc.y, { width: 80 });
+      const sigBuf = await fetchImageBuffer(settings.signature);
+      if (sigBuf) doc.image(sigBuf, doc.page.width - 130, doc.y, { width: 80 });
     }
 
     doc.end();

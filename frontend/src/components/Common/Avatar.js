@@ -1,5 +1,5 @@
 import React from 'react';
-import { UPLOADS_URL } from '../../config';
+import { getImageUrl } from '../../config';
 
 const colors = [
   '#059669', '#d97706', '#dc2626', '#4f46e5', '#db2777',
@@ -27,7 +27,7 @@ const Avatar = ({ nom, prenom, photo, size = 40, fontSize, style }) => {
   if (photo) {
     return (
       <img
-        src={`${UPLOADS_URL}/${photo}`}
+        src={getImageUrl(photo)}
         alt={`${nom} ${prenom}`}
         style={{
           width: size,

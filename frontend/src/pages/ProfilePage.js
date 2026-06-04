@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Layout from '../components/Layout/Layout';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Common/Toast';
-import { UPLOADS_URL } from '../config';
+import { getImageUrl } from '../config';
 import api from '../api/axios';
 
 const ProfilePage = () => {
@@ -50,7 +50,7 @@ const ProfilePage = () => {
     }
   };
 
-  const photoUrl = photo || (user?.photo ? `${UPLOADS_URL}/${user.photo}` : null);
+  const photoUrl = photo || getImageUrl(user?.photo);
 
   return (
     <Layout>

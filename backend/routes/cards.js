@@ -3,6 +3,7 @@ const Student = require('../models/Student');
 const Teacher = require('../models/Teacher');
 const Setting = require('../models/Setting');
 const { protect } = require('../middleware/auth');
+const { fetchImageBuffer } = require('../config/cloudinary');
 const router = express.Router();
 
 router.post('/', protect, async (req, res) => {
@@ -11,11 +12,10 @@ router.post('/', protect, async (req, res) => {
     if (!type || !ids || !ids.length) return res.status(400).json({ message: 'Type et liste d\'IDs requis' });
 
     const PDFDocument = require('pdfkit');
-    const fs = require('fs');
-    const path = require('path');
 
     const settings = await Setting.findOne() || {};
     const schoolName = settings.nomEcole || 'ÉCOLE CORANIQUE';
+    const logoBuffer = settings.logo ? await fetchImageBuffer(settings.logo) : null;
 
     let data;
     if (type === 'eleve') {
@@ -25,6 +25,10 @@ router.post('/', protect, async (req, res) => {
     } else {
       return res.status(400).json({ message: 'Type invalide' });
     }
+
+    const photoBuffers = await Promise.all(data.map(item =>
+      item.photo ? fetchImageBuffer(item.photo) : null
+    ));
 
     const doc = new PDFDocument({ size: 'A4', margin: 0, layout: 'portrait' });
     res.setHeader('Content-Type', 'application/pdf');
@@ -55,11 +59,8 @@ router.post('/', protect, async (req, res) => {
 
       doc.roundedRect(x, y, cardW, 42, r).fill('#1E3B2E');
 
-      if (settings.logo) {
-        const logoPath = path.join(__dirname, '..', 'uploads', settings.logo);
-        if (fs.existsSync(logoPath)) {
-          doc.image(logoPath, x + 12, y + 6, { width: 28 });
-        }
+      if (logoBuffer) {
+        doc.image(logoBuffer, x + 12, y + 6, { width: 28 });
       }
 
       doc.fillColor('#ffffff').fontSize(10).font('Helvetica-Bold').text(schoolName, x + 46, y + 8, { width: cardW - 56, align: 'center' });
@@ -71,11 +72,9 @@ router.post('/', protect, async (req, res) => {
 
       doc.roundedRect(photoX, photoY, photoSize, photoSize, 8).lineWidth(1).stroke('#d4d4d4');
       doc.roundedRect(photoX + 2, photoY + 2, photoSize - 4, photoSize - 4, 6).fill('#f9fafb');
-      if (item.photo) {
-        const photoPath = path.join(__dirname, '..', 'uploads', item.photo);
-        if (fs.existsSync(photoPath)) {
-          doc.image(photoPath, photoX + 2, photoY + 2, { width: photoSize - 4, height: photoSize - 4 });
-        }
+      const photoBuf = photoBuffers[idx];
+      if (photoBuf) {
+        doc.image(photoBuf, photoX + 2, photoY + 2, { width: photoSize - 4, height: photoSize - 4 });
       }
 
       const textX = photoX + photoSize + 14;

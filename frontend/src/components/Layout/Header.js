@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
-import { UPLOADS_URL } from '../../config';
+import { getImageUrl } from '../../config';
 import api from '../../api/axios';
 
 const NotificationDropdown = ({ onClose }) => {
@@ -147,7 +147,7 @@ const Header = ({ onToggleSidebar }) => {
         <div className="topbar-profile" ref={ref} onClick={() => setOpen(!open)}>
           <div className="topbar-avatar">
             {user?.photo ? (
-              <img src={`${UPLOADS_URL}/${user.photo}`} alt="" />
+              <img src={getImageUrl(user.photo)} alt="" />
             ) : (
               user?.nom?.charAt(0)?.toUpperCase() || 'A'
             )}
