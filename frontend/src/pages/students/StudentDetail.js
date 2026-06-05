@@ -60,8 +60,8 @@ const StudentDetail = () => {
                   {evaluations.map(e => (
                     <tr key={e._id}>
                       <td>{e.sourate}</td>
-                      <td>{e.noteRecitation}/20</td>
-                      <td>{e.noteTajwid}/20</td>
+                      <td>{e.noteRecitation}/10</td>
+                      <td>{e.noteTajwid}/10</td>
                       <td>{new Date(e.dateEvaluation).toLocaleDateString('fr-FR')}</td>
                     </tr>
                   ))}

@@ -85,7 +85,7 @@ const Dashboard = () => {
 
   const recentEvals = useMemo(() => {
     return [...evaluations].reverse().slice(0, 5).map(e => {
-      const avg = Math.round(((e.noteRecitation + e.noteTajwid) / 40) * 100);
+      const avg = Math.round(((e.noteRecitation + e.noteTajwid) / 20) * 100);
       return { ...e, avg };
     });
   }, [evaluations]);

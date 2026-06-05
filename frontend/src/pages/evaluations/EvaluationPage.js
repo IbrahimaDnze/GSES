@@ -20,8 +20,7 @@ const EvaluationPage = () => {
   const [matriculeInput, setMatriculeInput] = useState('');
   const [eleveTrouve, setEleveTrouve] = useState(null);
   const [form, setForm] = useState({
-    eleve: '', sourate: '', noteRecitation: '', noteTajwid: '',
-    niveau: 'Alif'
+    eleve: '', sourate: '', noteRecitation: '', noteTajwid: ''
   });
   const [saving, setSaving] = useState(false);
   const perPage = 8;
@@ -70,7 +69,7 @@ const EvaluationPage = () => {
   };
 
   const openAdd = () => {
-    setForm({ eleve: '', sourate: '', noteRecitation: '', noteTajwid: '', niveau: 'Alif' });
+    setForm({ eleve: '', sourate: '', noteRecitation: '', noteTajwid: '' });
     setMatriculeInput(''); setEleveTrouve(null);
     setEditId(null); setShowDrawer(true);
   };
@@ -78,8 +77,7 @@ const EvaluationPage = () => {
   const openEdit = (e) => {
     setForm({
       eleve: e.eleve?._id || '', sourate: e.sourate,
-      noteRecitation: e.noteRecitation, noteTajwid: e.noteTajwid,
-      niveau: e.niveau
+      noteRecitation: e.noteRecitation, noteTajwid: e.noteTajwid
     });
     const found = e.eleve?._id ? students.find(s => s._id === e.eleve._id) : null;
     setMatriculeInput(found ? `${found.nom} ${found.prenom}` : '');
@@ -114,9 +112,9 @@ const EvaluationPage = () => {
   }, [evaluations]);
 
   const getNoteColor = (note) => {
-    if (note >= 16) return '#059669';
-    if (note >= 12) return '#d97706';
-    if (note >= 10) return '#db2777';
+    if (note >= 8) return '#059669';
+    if (note >= 6) return '#d97706';
+    if (note >= 5) return '#db2777';
     return '#dc2626';
   };
 
@@ -146,7 +144,7 @@ const EvaluationPage = () => {
             <i className="fa-solid fa-chart-line"></i>
           </div>
           <div>
-            <div className="stu-stat-value">{stats.moyenne}/20</div>
+            <div className="stu-stat-value">{stats.moyenne}/10</div>
             <div className="stu-stat-label">Moyenne générale</div>
           </div>
         </div>
@@ -155,7 +153,7 @@ const EvaluationPage = () => {
             <i className="fa-solid fa-trophy"></i>
           </div>
           <div>
-            <div className="stu-stat-value">{stats.meilleur}/20</div>
+            <div className="stu-stat-value">{stats.meilleur}/10</div>
             <div className="stu-stat-label">Meilleure note</div>
           </div>
         </div>
@@ -210,7 +208,6 @@ const EvaluationPage = () => {
                   <th className="col-montant">Récitation</th>
                   <th className="col-montant">Tajwid</th>
                   <th className="col-classe">Moyenne</th>
-                  <th className="col-niveau">Niveau</th>
                   <th className="col-date">Date</th>
                   <th className="col-actions" style={{ width: 100 }}>Actions</th>
                 </tr>
@@ -226,13 +223,13 @@ const EvaluationPage = () => {
                       <td>
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontWeight: 700, color: getNoteColor(e.noteRecitation) }}>
                           <i className="fa-solid fa-circle" style={{ fontSize: 6 }}></i>
-                          {e.noteRecitation}/20
+                          {e.noteRecitation}/10
                         </span>
                       </td>
                       <td>
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontWeight: 700, color: getNoteColor(e.noteTajwid) }}>
                           <i className="fa-solid fa-circle" style={{ fontSize: 6 }}></i>
-                          {e.noteTajwid}/20
+                          {e.noteTajwid}/10
                         </span>
                       </td>
                       <td>
@@ -243,7 +240,7 @@ const EvaluationPage = () => {
                           color: '#fff', fontWeight: 700, fontSize: 13,
                         }}>{moy}</div>
                       </td>
-                      <td><span className="badge" style={{ background: '#f1f0ed', color: '#57534e', fontSize: 11.5 }}>{e.niveau}</span></td>
+
                       <td style={{ fontSize: 12.5, color: '#57534e' }}>
                         {new Date(e.dateEvaluation).toLocaleDateString('fr-FR')}
                       </td>
@@ -257,7 +254,7 @@ const EvaluationPage = () => {
                   );
                 })}
                 {paginated.length === 0 && (
-                  <tr><td colSpan="9" style={{ textAlign: 'center', padding: 40, color: '#9ca3af' }}>
+                  <tr><td colSpan="8" style={{ textAlign: 'center', padding: 40, color: '#9ca3af' }}>
                     <i className="fa-solid fa-file-circle-minus" style={{ fontSize: 28, marginBottom: 8, display: 'block' }}></i>
                     Aucune évaluation trouvée
                   </td></tr>
@@ -322,17 +319,10 @@ const EvaluationPage = () => {
                 )}
                 <input type="hidden" name="eleve" value={form.eleve} />
               </div>
+              <div className="form-group"><label>Sourate</label><input value={form.sourate} onChange={e => setForm({...form, sourate: e.target.value})} required /></div>
               <div className="form-row" style={{ gap: 12 }}>
-                <div className="form-group" style={{ flex: 1 }}><label>Sourate</label><input value={form.sourate} onChange={e => setForm({...form, sourate: e.target.value})} required /></div>
-                <div className="form-group" style={{ flex: 1 }}><label>Niveau</label>
-                  <select value={form.niveau} onChange={e => setForm({...form, niveau: e.target.value})}>
-                    {niveaux.map(n => <option key={n} value={n}>{n}</option>)}
-                  </select>
-                </div>
-              </div>
-              <div className="form-row" style={{ gap: 12 }}>
-                <div className="form-group" style={{ flex: 1 }}><label>Note Récitation /20</label><input type="number" min="0" max="20" step="0.5" value={form.noteRecitation} onChange={e => setForm({...form, noteRecitation: e.target.value})} required /></div>
-                <div className="form-group" style={{ flex: 1 }}><label>Note Tajwid /20</label><input type="number" min="0" max="20" step="0.5" value={form.noteTajwid} onChange={e => setForm({...form, noteTajwid: e.target.value})} required /></div>
+                <div className="form-group" style={{ flex: 1 }}><label>Note Récitation /10</label><input type="number" min="0" max="10" step="0.5" value={form.noteRecitation} onChange={e => setForm({...form, noteRecitation: e.target.value})} required /></div>
+                <div className="form-group" style={{ flex: 1 }}><label>Note Tajwid /10</label><input type="number" min="0" max="10" step="0.5" value={form.noteTajwid} onChange={e => setForm({...form, noteTajwid: e.target.value})} required /></div>
               </div>
               <div style={{ marginTop: 'auto', display: 'flex', gap: 10, paddingTop: 16, borderTop: '1px solid #f1f0ed' }}>
                 <button type="submit" className="btn btn-primary" disabled={saving}>

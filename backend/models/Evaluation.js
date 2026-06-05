@@ -3,8 +3,8 @@ const mongoose = require('mongoose');
 const evaluationSchema = new mongoose.Schema({
   eleve: { type: mongoose.Schema.Types.ObjectId, ref: 'Student', required: true },
   sourate: { type: String, required: true },
-  noteRecitation: { type: Number, min: 0, max: 20 },
-  noteTajwid: { type: Number, min: 0, max: 20 },
+  noteRecitation: { type: Number, min: 0, max: 10 },
+  noteTajwid: { type: Number, min: 0, max: 10 },
   niveau: {
     type: String,
     enum: ['Alif', 'Ba', 'Coran Debutant', 'Memorisation', 'Tajwid']
