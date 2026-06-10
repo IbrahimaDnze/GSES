@@ -16,25 +16,22 @@ const TeacherForm = () => {
   const [photoPreview, setPhotoPreview] = useState(null);
   const fileRef = useRef(null);
   const [matieres, setMatieres] = useState([]);
-  const [niveaux, setNiveaux] = useState([]);
   const [classOptions, setClassOptions] = useState([]);
   const [form, setForm] = useState({
     nom: '', prenom: '', identifiant: '', dateNaissance: '', sexe: 'Masculin',
     telephone: '', adresse: '', dateEmbauche: new Date().toISOString().split('T')[0],
-    matiere: '', niveauEnseignement: '', classes: []
+    matiere: '', classes: []
   });
 
   useEffect(() => {
     Promise.all([
       api.get('/subjects').then(r => r.data.map(s => s.nom)),
-      api.get('/levels').then(r => r.data.map(l => l.nom)),
       api.get('/classes').then(r => r.data.map(c => c.nom)),
-    ]).then(([m, n, c]) => {
+    ]).then(([m, c]) => {
       setMatieres(m);
-      setNiveaux(n);
       setClassOptions(c);
       if (!isEdit) {
-        setForm(prev => ({ ...prev, matiere: m[0] || '', niveauEnseignement: n[0] || '' }));
+        setForm(prev => ({ ...prev, matiere: m[0] || '' }));
       }
     }).catch(() => addToast('Erreur chargement données', 'error'));
   }, []);
@@ -50,7 +47,6 @@ const TeacherForm = () => {
             telephone: t.telephone || '', adresse: t.adresse || '',
             dateEmbauche: t.dateEmbauche?.split('T')[0] || '',
             matiere: t.matiere || t.specialite || '',
-            niveauEnseignement: t.niveauEnseignement || '',
             classes: t.classes || []
           });
           if (t.photo) setPhotoPreview(t.photo);
@@ -184,12 +180,6 @@ const TeacherForm = () => {
                   <label>Matières enseignées</label>
                   <select name="matiere" value={form.matiere} onChange={handleChange} required>
                     {matieres.map(m => <option key={m} value={m}>{m}</option>)}
-                  </select>
-                </div>
-                <div className="form-group required">
-                  <label>Niveau d'enseignement</label>
-                  <select name="niveauEnseignement" value={form.niveauEnseignement} onChange={handleChange} required>
-                    {niveaux.map(n => <option key={n} value={n}>{n}</option>)}
                   </select>
                 </div>
               </div>
