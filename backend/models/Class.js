@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const classSchema = new mongoose.Schema({
   nom: { type: String, required: true },
-  niveau: { type: String, required: true },
+  matieres: [{ type: String }],
   enseignant: { type: mongoose.Schema.Types.ObjectId, ref: 'Teacher', set: v => v === '' ? undefined : v },
   emploiDuTemps: {
     lundi: { matin: String, apresMidi: String },

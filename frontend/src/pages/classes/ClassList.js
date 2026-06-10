@@ -10,19 +10,15 @@ const ClassList = () => {
   const [classes, setClasses] = useState([]);
   const [teachers, setTeachers] = useState([]);
   const [matieres, setMatieres] = useState([]);
-  const [niveaux, setNiveaux] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [filtreNiveau, setFiltreNiveau] = useState('');
   const [filtreStatut, setFiltreStatut] = useState('');
   const [page, setPage] = useState(1);
   const [showDrawer, setShowDrawer] = useState(false);
   const [showMatiereDrawer, setShowMatiereDrawer] = useState(false);
-  const [showNiveauDrawer, setShowNiveauDrawer] = useState(false);
   const [editId, setEditId] = useState(null);
-  const [form, setForm] = useState({ nom: '', niveau: '', enseignant: '', description: '' });
+  const [form, setForm] = useState({ nom: '', enseignant: '', description: '', matieres: [] });
   const [matiereForm, setMatiereForm] = useState({ nom: '' });
-  const [niveauForm, setNiveauForm] = useState({ nom: '' });
   const [saving, setSaving] = useState(false);
   const perPage = 8;
 
@@ -32,8 +28,7 @@ const ClassList = () => {
       api.get('/classes').then(r => r.data),
       api.get('/teachers').then(r => r.data),
       api.get('/subjects').then(r => r.data),
-      api.get('/levels').then(r => r.data),
-    ]).then(([c, t, s, l]) => { setClasses(c); setTeachers(t); setMatieres(s); setNiveaux(l); })
+    ]).then(([c, t, s]) => { setClasses(c); setTeachers(t); setMatieres(s); })
       .catch(console.error).finally(() => setLoading(false));
   };
 
@@ -45,20 +40,26 @@ const ClassList = () => {
         const q = search.toLowerCase();
         if (!c.nom.toLowerCase().includes(q) && !(c.enseignant?.nom?.toLowerCase().includes(q)) && !(c.enseignant?.prenom?.toLowerCase().includes(q))) return false;
       }
-      if (filtreNiveau && c.niveau !== filtreNiveau) return false;
       if (filtreStatut === 'actif' && !c.actif) return false;
       if (filtreStatut === 'inactif' && c.actif) return false;
       return true;
     });
-  }, [classes, search, filtreNiveau, filtreStatut]);
+  }, [classes, search, filtreStatut]);
 
   const totalPages = Math.ceil(filtered.length / perPage);
   const paginated = filtered.slice((page - 1) * perPage, page * perPage);
 
-  useEffect(() => { setPage(1); }, [search, filtreNiveau, filtreStatut]);
+  useEffect(() => { setPage(1); }, [search, filtreStatut]);
 
-  const openAdd = () => { setForm({ nom: '', niveau: niveaux[0]?.nom || '', enseignant: '', description: '' }); setEditId(null); setShowDrawer(true); };
-  const openEdit = (c) => { setForm({ nom: c.nom, niveau: c.niveau, enseignant: c.enseignant?._id || '', description: c.description || '' }); setEditId(c._id); setShowDrawer(true); };
+  const openAdd = () => { setForm({ nom: '', enseignant: '', description: '', matieres: [] }); setEditId(null); setShowDrawer(true); };
+  const openEdit = (c) => { setForm({ nom: c.nom, enseignant: c.enseignant?._id || '', description: c.description || '', matieres: c.matieres || [] }); setEditId(c._id); setShowDrawer(true); };
+
+  const toggleMatiere = (m) => {
+    setForm(f => ({
+      ...f,
+      matieres: f.matieres.includes(m) ? f.matieres.filter(x => x !== m) : [...f.matieres, m]
+    }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -80,8 +81,8 @@ const ClassList = () => {
     total: classes.length,
     actives: classes.filter(c => c.actif !== false).length,
     totalEleves: classes.reduce((sum, c) => sum + (c.nombreEleves || 0), 0),
-    niveauxUniques: new Set(classes.map(c => c.niveau)).size,
-  }), [classes]);
+    totalMatieres: matieres.length,
+  }), [classes, matieres]);
 
   return (
     <Layout>
@@ -91,9 +92,7 @@ const ClassList = () => {
           <button className="btn btn-info" onClick={() => { setMatiereForm({ nom: '' }); setShowMatiereDrawer(true); }}>
             <i className="fa-solid fa-book-open"></i> Ajouter une matière
           </button>
-          <button className="btn" style={{ background: 'linear-gradient(135deg, #7c3aed, #6366f1)', color: '#fff' }} onClick={() => { setNiveauForm({ nom: '' }); setShowNiveauDrawer(true); }}>
-            <i className="fa-solid fa-layer-group"></i> Ajouter un niveau
-          </button>
+
           <button className="btn btn-primary" onClick={openAdd}>
             <i className="fa-solid fa-plus"></i> Ajouter une classe
           </button>
@@ -128,13 +127,13 @@ const ClassList = () => {
             <div className="stu-stat-label">Élèves inscrits</div>
           </div>
         </div>
-        <div className="stu-stat-card" style={{ borderTopColor: '#db2777' }}>
-          <div className="stu-stat-icon" style={{ background: '#fdf2f8', color: '#db2777' }}>
-            <i className="fa-solid fa-layer-group"></i>
+        <div className="stu-stat-card" style={{ borderTopColor: '#0891b2' }}>
+          <div className="stu-stat-icon" style={{ background: '#ecfeff', color: '#0891b2' }}>
+            <i className="fa-solid fa-book-open"></i>
           </div>
           <div>
-            <div className="stu-stat-value">{stats.niveauxUniques}</div>
-            <div className="stu-stat-label">Niveaux distincts</div>
+            <div className="stu-stat-value">{stats.totalMatieres}</div>
+            <div className="stu-stat-label">Matières</div>
           </div>
         </div>
       </div>
@@ -145,20 +144,14 @@ const ClassList = () => {
           <input placeholder="Rechercher une classe ou un enseignant..." value={search} onChange={e => setSearch(e.target.value)} style={{ minWidth: 220 }} />
         </div>
         <div className="stu-filter-group">
-          <select value={filtreNiveau} onChange={e => setFiltreNiveau(e.target.value)}>
-            <option value="">Tous niveaux</option>
-            {niveaux.map(n => <option key={n._id} value={n.nom}>{n.nom}</option>)}
-          </select>
-        </div>
-        <div className="stu-filter-group">
           <select value={filtreStatut} onChange={e => setFiltreStatut(e.target.value)}>
             <option value="">Tous statuts</option>
             <option value="actif">Active</option>
             <option value="inactif">Inactive</option>
           </select>
         </div>
-        {(search || filtreNiveau || filtreStatut) && (
-          <button className="btn btn-sm" style={{ background: '#f1f0ed', color: '#57534e' }} onClick={() => { setSearch(''); setFiltreNiveau(''); setFiltreStatut(''); }}>
+        {(search || filtreStatut) && (
+          <button className="btn btn-sm" style={{ background: '#f1f0ed', color: '#57534e' }} onClick={() => { setSearch(''); setFiltreStatut(''); }}>
             <i className="fa-solid fa-rotate"></i> Réinitialiser
           </button>
         )}
@@ -171,7 +164,6 @@ const ClassList = () => {
               <thead>
                 <tr>
                   <th className="col-nom">Nom de la classe</th>
-                  <th className="col-niveau">Niveau</th>
                   <th className="col-contact">Enseignant</th>
                   <th className="col-classe">Élèves</th>
                   <th className="col-statut">Statut</th>
@@ -183,11 +175,6 @@ const ClassList = () => {
                   return (
                     <tr key={c._id}>
                       <td style={{ fontWeight: 600 }}>{c.nom}</td>
-                      <td>
-                        <span className="badge" style={{ background: c.niveau === 'Alif' ? '#059669' : c.niveau === 'Ba' ? '#4f46e5' : c.niveau === 'Memorisation' ? '#d97706' : '#0891b2' }}>
-                          {c.niveau}
-                        </span>
-                      </td>
                       <td>
                         {c.enseignant ? (
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -213,7 +200,7 @@ const ClassList = () => {
                   );
                 })}
                 {paginated.length === 0 && (
-                  <tr><td colSpan="6" style={{ textAlign: 'center', padding: 40, color: '#9ca3af' }}>
+                  <tr><td colSpan="5" style={{ textAlign: 'center', padding: 40, color: '#9ca3af' }}>
                     <i className="fa-solid fa-chalkboard-slash" style={{ fontSize: 28, marginBottom: 8, display: 'block' }}></i>
                     Aucune classe trouvée
                   </td></tr>
@@ -258,10 +245,16 @@ const ClassList = () => {
             </div>
             <form onSubmit={handleSubmit} style={{ padding: 24, flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div className="form-group"><label>Nom de la classe</label><input value={form.nom} onChange={e => setForm({...form, nom: e.target.value})} required /></div>
-              <div className="form-group"><label>Niveau</label>
-                <select value={form.niveau} onChange={e => setForm({...form, niveau: e.target.value})}>
-                  {niveaux.map(n => <option key={n._id} value={n.nom}>{n.nom}</option>)}
-                </select>
+              <div className="form-group"><label>Matières enseignées</label>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, padding: '8px 0' }}>
+                  {matieres.map(m => (
+                    <label key={m._id} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 8, cursor: 'pointer', background: form.matieres.includes(m.nom) ? '#059669' : '#f1f0ed', color: form.matieres.includes(m.nom) ? '#fff' : '#57534e', fontSize: 13, fontWeight: 500, transition: 'all 0.15s' }}>
+                      <input type="checkbox" checked={form.matieres.includes(m.nom)} onChange={() => toggleMatiere(m.nom)} style={{ display: 'none' }} />
+                      {m.nom}
+                    </label>
+                  ))}
+                  {matieres.length === 0 && <span style={{ color: '#9ca3af', fontSize: 13 }}>Aucune matière. Ajoutez-en d'abord.</span>}
+                </div>
               </div>
               <div className="form-group"><label>Enseignant</label>
                 <select value={form.enseignant} onChange={e => setForm({...form, enseignant: e.target.value})}>
@@ -302,26 +295,7 @@ const ClassList = () => {
         </>
       )}
 
-      {showNiveauDrawer && (
-        <>
-          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 999 }} onClick={() => setShowNiveauDrawer(false)} />
-          <div style={{ position: 'fixed', top: 0, right: 0, width: 420, height: '100vh', background: '#fff', zIndex: 1000, boxShadow: '-4px 0 24px rgba(0,0,0,0.12)', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ padding: '20px 24px', borderBottom: '1px solid #f1f0ed', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ margin: 0, color: '#0a2e2a', fontSize: 16 }}>
-                <i className="fa-solid fa-layer-group" style={{ color: '#7c3aed', marginRight: 8 }}></i> Nouveau niveau
-              </h3>
-              <button onClick={() => setShowNiveauDrawer(false)} style={{ background: 'none', border: 'none', fontSize: 20, color: '#78716c', cursor: 'pointer' }}>&times;</button>
-            </div>
-            <form onSubmit={async (e) => { e.preventDefault(); if (!niveauForm.nom.trim()) return; try { await api.post('/levels', { nom: niveauForm.nom.trim() }); addToast('Niveau ajouté'); fetchData(); setShowNiveauDrawer(false); } catch (err) { addToast(err.response?.data?.message || 'Erreur', 'error'); } }} style={{ padding: 24, flex: 1, display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div className="form-group"><label>Nom du niveau</label><input value={niveauForm.nom} onChange={e => setNiveauForm({nom: e.target.value})} required placeholder="Ex: Juz 30" /></div>
-              <div style={{ marginTop: 'auto', display: 'flex', gap: 10, paddingTop: 16, borderTop: '1px solid #f1f0ed' }}>
-                <button type="submit" className="btn" style={{ background: 'linear-gradient(135deg, #7c3aed, #6366f1)', color: '#fff' }}><i className="fa-solid fa-save"></i> Ajouter</button>
-                <button type="button" className="btn" onClick={() => setShowNiveauDrawer(false)} style={{ border: '1.5px solid #e5e7eb', color: '#57534e' }}>Annuler</button>
-              </div>
-            </form>
-          </div>
-        </>
-      )}
+
     </Layout>
   );
 };
