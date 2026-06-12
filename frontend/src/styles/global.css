@@ -850,6 +850,13 @@ table thead th:last-child { border-radius: 0 12px 0 0; }
   .dash-stat-value { font-size: 22px; }
   .modal-content { max-width: 90%; margin: 10px; }
   .topbar-dropdown { right: -8px; min-width: 180px; }
+  .checkbox-grid { grid-template-columns: 1fr; }
+  .form-section-body .form-row:not(.form-row-static) { grid-template-columns: 1fr; }
+  .page-header > div:last-child { flex-wrap: wrap; }
+  .page-header .btn { font-size: 12px; padding: 7px 12px; white-space: nowrap; }
+  .dash-chart-card { padding: 16px; }
+  .dash-widget { padding: 14px; }
+  .params-file-upload { min-height: 80px; padding: 16px; }
 }
 @media (max-width: 480px) {
   .sidebar { width: 100%; }
@@ -891,24 +898,6 @@ table thead th:last-child { border-radius: 0 12px 0 0; }
   .table-container { border-radius: 8px; }
   .stu-pagination-info { font-size: 11px; }
 }
-@media (max-width: 768px) {
-  .sidebar { width: 68px; }
-  .sidebar-logo h2, .sidebar-logo p, .sidebar-section-title, .sidebar-nav li a span, .sidebar-footer { display: none; }
-  .sidebar-nav li a { justify-content: center; padding: 12px; }
-  .sidebar-logo { justify-content: center; padding: 16px; }
-  .sidebar-logo-icon { margin: 0; }
-  .main-content { margin-left: 68px; }
-  .stu-stats { grid-template-columns: 1fr; }
-  .form-row { grid-template-columns: 1fr; }
-  .topbar-search input { width: 140px; }
-  .topbar-profile-info { display: none; }
-  .dash-cards-4 { grid-template-columns: 1fr; }
-  .stu-stats { grid-template-columns: 1fr; }
-  .form-footer { flex-direction: column; gap: 14px; align-items: stretch; }
-  .form-actions-right { justify-content: flex-end; }
-  .auth-options { flex-direction: column; gap: 10px; align-items: flex-start; }
-}
-
 /* ========== RESET PASSWORD ========== */
 .reset-code-box {
   background: linear-gradient(135deg, #059669, #0d7a5e);
@@ -1082,4 +1071,45 @@ table thead th:last-child { border-radius: 0 12px 0 0; }
 .form-control:focus {
   outline: none; border-color: #0d7a5e;
   background: #fff; box-shadow: 0 0 0 4px rgba(13,122,94,0.08);
+}
+
+/* ========== CALENDAR RESPONSIVE ========== */
+@media (max-width: 576px) {
+  .cal-grid { grid-template-columns: repeat(7, 1fr); }
+  .cal-cell { min-height: 60px; padding: 4px; font-size: 11px; }
+  .cal-cell-day { font-size: 12px; }
+  .cal-nav { gap: 6px; }
+  .cal-nav h3 { font-size: 14px; }
+  .cal-legend { flex-wrap: wrap; gap: 8px; font-size: 11px; }
+  .cal-modal { min-width: 0; width: calc(100vw - 32px); max-width: 100%; }
+}
+@media (max-width: 400px) {
+  .cal-cell { min-height: 50px; font-size: 10px; padding: 2px; }
+  .cal-cell-day { font-size: 10px; }
+}
+
+/* ========== STUDENT DETAIL RESPONSIVE ========== */
+@media (max-width: 600px) {
+  .sd-grid-2 { grid-template-columns: 1fr !important; }
+}
+
+/* ========== CARDS PAGE RESPONSIVE ========== */
+@media (max-width: 768px) {
+  .cards-actions { flex-direction: column; align-items: stretch; }
+  .cards-actions > * { width: 100%; }
+  .cards-tabs { flex-wrap: wrap; }
+}
+@media (max-width: 600px) {
+  .cards-grid { grid-template-columns: 1fr !important; }
+}
+
+/* ========== PAYMENTS RESPONSIVE ========== */
+@media (max-width: 768px) {
+  .payments-impayes-table { overflow-x: auto; }
+}
+
+/* ========== GLOBAL OVERFLOW FIX ========== */
+@media (max-width: 480px) {
+  .table-container { overflow-x: auto; }
+  .toast-container { right: 10px !important; min-width: 0 !important; max-width: calc(100vw - 20px) !important; }
 }

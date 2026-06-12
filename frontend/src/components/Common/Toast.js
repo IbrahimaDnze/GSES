@@ -8,7 +8,7 @@ const Toast = () => {
   const { toasts, removeToast } = useContext(ToastContext);
   if (!toasts || toasts.length === 0) return null;
   return (
-    <div style={{ position: 'fixed', top: 20, right: 20, zIndex: 99999, display: 'flex', flexDirection: 'column', gap: 8 }}>
+    <div className="toast-container" style={{ position: 'fixed', top: 20, right: 20, zIndex: 99999, display: 'flex', flexDirection: 'column', gap: 8 }}>
       {toasts.map(t => (
         <div key={t.id} style={{ padding: '12px 20px', borderRadius: 10, color: '#fff', fontSize: 14, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 10, boxShadow: '0 4px 16px rgba(0,0,0,0.15)', animation: 'slideIn 0.25s ease', background: t.type === 'success' ? '#059669' : '#dc2626', minWidth: 280, maxWidth: 420 }}>
           <i className={`fa-solid ${t.type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}`}></i>

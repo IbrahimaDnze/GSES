@@ -209,7 +209,7 @@ const PaymentList = () => {
               Tous les élèves ont payé pour cette période
             </div>
           ) : (
-            <div style={{ padding: 12 }}>
+            <div className="payments-impayes-table" style={{ padding: 12 }}>
               <table>
                 <thead>
                   <tr>

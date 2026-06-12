@@ -82,12 +82,12 @@ const Calendrier = () => {
       </div>
 
       <div className="form-wrapper">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+        <div className="cal-nav" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
           <button className="btn btn-cancel" onClick={() => naviguer(-1)} style={{ padding: '8px 16px' }}>
             <i className="fa-solid fa-chevron-left"></i> {mois[(moisCourant - 1 + 12) % 12]}
           </button>
-          <h3 style={{ margin: 0, color: '#0f172a' }}>{mois[moisCourant]} {anneeCourante}</h3>
-          <div style={{ display: 'flex', gap: 8 }}>
+          <h3 style={{ margin: '0 8px', color: '#0f172a', fontSize: 18 }}>{mois[moisCourant]} {anneeCourante}</h3>
+          <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
             <button className="btn btn-primary" onClick={() => setShowForm(true)}>
               <i className="fa-solid fa-plus"></i> Programme
             </button>
@@ -97,21 +97,21 @@ const Calendrier = () => {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2, background: '#e2e8f0', borderRadius: 12, overflow: 'hidden' }}>
+        <div className="cal-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2, background: '#e2e8f0', borderRadius: 12, overflow: 'hidden' }}>
           {joursSemaine.map(j => (
             <div key={j} style={{ background: '#0d7a5e', color: '#fff', padding: '10px 4px', textAlign: 'center', fontWeight: 600, fontSize: 13 }}>
               {j}
             </div>
           ))}
           {Array.from({ length: premierJour }).map((_, i) => (
-            <div key={`empty-${i}`} style={{ background: '#fff', minHeight: 90, padding: 6 }}></div>
+            <div key={`empty-${i}`} className="cal-cell" style={{ background: '#fff', minHeight: 90, padding: 6 }}></div>
           ))}
           {Array.from({ length: joursDansMois }).map((_, i) => {
             const jour = i + 1;
             const evts = getEvenementsJour(jour);
             const estAujourdhui = jour === aujourdhui.getDate() && moisCourant === aujourdhui.getMonth() && anneeCourante === aujourdhui.getFullYear();
             return (
-              <div key={jour} style={{
+              <div key={jour} className="cal-cell" style={{
                 background: '#fff', minHeight: 90, padding: 6, cursor: 'pointer',
                 border: estAujourdhui ? '2px solid #0d7a5e' : 'none',
                 borderRadius: estAujourdhui ? 8 : 0
@@ -129,7 +129,7 @@ const Calendrier = () => {
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: 20, marginTop: 16 }}>
+      <div className="cal-legend" style={{ display: 'flex', gap: 20, marginTop: 16 }}>
         {['examen', 'reunion', 'evenement', 'programme'].map(k => (
           <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#64748b' }}>
             <span style={{ width: 12, height: 12, borderRadius: 3, background: getTypeColor(k) }}></span> {getTypeLabel(k)}
@@ -142,7 +142,7 @@ const Calendrier = () => {
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.4)',
           display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000
         }} onClick={() => setShowModal(false)}>
-          <div style={{ background: '#fff', borderRadius: 16, padding: 30, minWidth: 360, maxWidth: 480 }} onClick={e => e.stopPropagation()}>
+          <div className="cal-modal" style={{ background: '#fff', borderRadius: 16, padding: 30, minWidth: 360, maxWidth: 480 }} onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <h3 style={{ margin: 0, color: '#0f172a' }}>{modalEvent.titre}</h3>
               <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: '#94a3b8' }}>
@@ -166,7 +166,7 @@ const Calendrier = () => {
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.4)',
           display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000
         }} onClick={() => setShowForm(false)}>
-          <div style={{ background: '#fff', borderRadius: 16, padding: 30, minWidth: 420 }} onClick={e => e.stopPropagation()}>
+          <div className="cal-modal" style={{ background: '#fff', borderRadius: 16, padding: 30, minWidth: 420 }} onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
               <h3 style={{ margin: 0, color: '#0f172a' }}><i className="fa-solid fa-plus-circle" style={{ color: '#0d7a5e', marginRight: 8 }}></i>Nouveau programme</h3>
               <button onClick={() => setShowForm(false)} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: '#94a3b8' }}>

@@ -93,8 +93,8 @@ const Cartes = () => {
       </div>
 
       <div className="form-wrapper">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-          <div style={{ display: 'flex', gap: 10 }}>
+        <div className="cards-actions" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+          <div className="cards-tabs" style={{ display: 'flex', gap: 10 }}>
             <button className={`btn ${onglet === 'eleve' ? 'btn-primary' : 'btn-cancel'}`} onClick={() => setOnglet('eleve')}>
               <i className="fa-solid fa-graduation-cap"></i> Élèves
             </button>
@@ -102,7 +102,7 @@ const Cartes = () => {
               <i className="fa-solid fa-chalkboard-user"></i> Enseignants
             </button>
           </div>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
             {onglet === 'eleve' && classes.length > 0 && (
               <div className="stu-filter-group" style={{ marginBottom: 0 }}>
                 <select value={filtreClasse} onChange={e => setFiltreClasse(e.target.value)} style={{ padding: '7px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 12.5 }}>
@@ -131,7 +131,7 @@ const Cartes = () => {
         {loading ? (
           <div style={{ textAlign: 'center', padding: 40, color: '#94a3b8' }}>Chargement...</div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 12 }}>
+          <div className="cards-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 12 }}>
             {listeFiltree.map(item => {
               const isSelected = selectionnes.includes(item._id);
               return (

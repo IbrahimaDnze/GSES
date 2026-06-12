@@ -30,7 +30,7 @@ const StudentDetail = () => {
 
   return (
     <Layout title={`${student.nom} ${student.prenom}`}>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+      <div className="sd-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
         <div style={{ background: '#fff', padding: 22, borderRadius: 14, border: '1px solid #f1f0ed' }}>
           <h3 style={{ color: '#0a2e2a', marginBottom: 15, fontSize: 15 }}>Informations</h3>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
@@ -40,7 +40,7 @@ const StudentDetail = () => {
               <span className="badge badge-present" style={{ fontSize: 12 }}>{student.niveauCoranique}</span>
             </div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 20px' }}>
+          <div className="sd-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 20px' }}>
             <p style={{ fontSize: 13.5, color: '#57534e' }}><strong style={{ color: '#0a2e2a' }}>Date naissance:</strong> {student.dateNaissance ? new Date(student.dateNaissance).toLocaleDateString('fr-FR') : 'N/A'}</p>
             <p style={{ fontSize: 13.5, color: '#57534e' }}><strong style={{ color: '#0a2e2a' }}>Sexe:</strong> {student.sexe}</p>
             <p style={{ fontSize: 13.5, color: '#57534e' }}><strong style={{ color: '#0a2e2a' }}>Tuteur:</strong> {student.nomTuteur}</p>
